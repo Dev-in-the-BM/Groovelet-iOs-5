@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
+  <!-- A magnifier; iOS 6 uses only the alpha channel and supplies the tint. -->
+  <circle cx="12.8" cy="12.8" r="7.2" fill="none" stroke="#000" stroke-width="2.8"/>
+  <path d="M18.1 18.1 L25.5 25.5" fill="none" stroke="#000" stroke-width="2.8" stroke-linecap="round"/>
+</svg>

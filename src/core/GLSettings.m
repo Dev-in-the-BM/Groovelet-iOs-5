@@ -5,6 +5,15 @@ NSString *const GLSettingsDidChangeNotification = @"GLSettingsDidChange";
 static NSString *const GLIgnoreArticlesKey = @"ignoreArticles";
 static NSString *const GLReplayGainKey = @"replayGainMode";
 static NSString *const GLMusicFoldersKey = @"musicFolders";
+static NSString *const GLTabBarItemsKey = @"tabBarItems";
+
+static NSArray *GLAvailableTabBarItems(void) {
+    return @[ @"artists", @"albums", @"songs", @"folders", @"playlists", @"search" ];
+}
+
+static NSArray *GLDefaultTabBarItems(void) {
+    return @[ @"artists", @"albums", @"songs", @"folders", @"playlists" ];
+}
 
 @implementation GLSettings
 
@@ -15,10 +24,22 @@ static NSString *const GLMusicFoldersKey = @"musicFolders";
         shared = [GLSettings new];
         [[NSUserDefaults standardUserDefaults] registerDefaults:@{
             GLIgnoreArticlesKey: @YES, GLReplayGainKey: @(GLReplayGainTrack),
-            GLMusicFoldersKey: @[ @"Groovelet" ],
+            GLMusicFoldersKey: @[ @"Groovelet" ], GLTabBarItemsKey: GLDefaultTabBarItems(),
         }];
     });
     return shared;
+}
+
++ (NSArray *)availableTabBarItems { return GLAvailableTabBarItems(); }
+
++ (NSArray *)defaultTabBarItems { return GLDefaultTabBarItems(); }
+
++ (NSString *)titleForTabBarItem:(NSString *)item {
+    NSDictionary *titles = @{
+        @"artists": @"Artists", @"albums": @"Albums", @"songs": @"Songs",
+        @"folders": @"Folders", @"playlists": @"Playlists", @"search": @"Search",
+    };
+    return titles[item];
 }
 
 - (void)setValue:(id)value forSetting:(NSString *)key {
@@ -72,6 +93,24 @@ static NSString *const GLMusicFoldersKey = @"musicFolders";
         if (!covered) [roots addObject:candidate];
     }
     [self setValue:roots forSetting:GLMusicFoldersKey];
+}
+
+- (NSArray *)tabBarItems {
+    NSArray *stored = [[NSUserDefaults standardUserDefaults] arrayForKey:GLTabBarItemsKey];
+    NSMutableArray *items = [NSMutableArray array];
+    for (NSString *item in GLAvailableTabBarItems()) {
+        if ([stored containsObject:item] && items.count < 5) [items addObject:item];
+    }
+    return items.count ? items : GLDefaultTabBarItems();
+}
+
+- (void)setTabBarItems:(NSArray *)tabBarItems {
+    NSMutableArray *safe = [NSMutableArray array];
+    for (NSString *item in GLAvailableTabBarItems()) {
+        if ([tabBarItems containsObject:item] && safe.count < 5) [safe addObject:item];
+    }
+    if (!safe.count) safe = [GLDefaultTabBarItems() mutableCopy];
+    [self setValue:safe forSetting:GLTabBarItemsKey];
 }
 
 @end

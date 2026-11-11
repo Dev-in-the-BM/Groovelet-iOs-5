@@ -15,6 +15,8 @@
 
 // Loads the items again.
 - (void)reload;
+// Reveals the search bar at the top of the list.
+- (void)showSearchField;
 
 #pragma mark For a subclass
 

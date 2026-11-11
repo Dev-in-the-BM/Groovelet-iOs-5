@@ -243,12 +243,16 @@ lyrics, and scrobbling.
 - **The colors:** the accent is coral `#FF6B4A`, and the background is
   `#111111`. They are different from the green of Spotify and the red of
   Apple Music.
-- **Five visible destinations:** Artists, Albums, Songs, Folders, and More.
-  Folders gets one of the four direct-content slots so it is not hidden by
-  UIKit's overflow. More contains Playlists, Upload, and Settings.
-- **The Folders tab icon** follows the existing tab artwork pipeline: the
-  source is `assets/tabs/folders.svg`; `scripts/icons.sh` renders 30px and 60px
-  PNGs because iOS loads the PNG assets, not SVG files.
+- **A configurable tab bar:** choose up to five of Artists, Albums, Songs,
+  Folders, Playlists, and Search. The default is the five library tabs other
+  than Search. Unselected destinations remain reachable from More.
+- **More is a navigation-bar button, not a tab.** It opens a standard pushed
+  list of unselected library destinations, Upload, and Settings. This keeps
+  every chosen destination in the iOS tab bar without invoking UIKit's tab
+  overflow.
+- **The Folders and Search tab icons** follow the tab artwork pipeline:
+  `assets/tabs/*.svg` is source artwork, and `scripts/icons.sh` renders 30px and
+  60px PNGs because iOS loads the PNG assets, not SVG files.
 - **A mini player** sits above the tab bar. A tap on it opens the full
   now-playing screen.
 - **Each list has a search box** at the top.

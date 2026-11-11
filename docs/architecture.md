@@ -47,8 +47,17 @@ selected folders under Media -> scan -> tag reader -> SQLite index -> lists
 3. **Index.** `GLLibrary` keeps one row for each file, the playlists, and the
    play counts. Covering indexes give the long lists in order with no sort.
 4. **Art.** `GLArtCache` makes square JPEG copies of the art at the size of
-   each view, and keeps them on disk. `GLImageLoader` loads them away from the
-   main thread.
+    each view, and keeps them on disk. `GLImageLoader` loads them away from the
+    main thread.
+
+## Navigation
+
+`GLSettings.tabBarItems` stores up to five identifiers from Artists, Albums,
+Songs, Folders, Playlists, and Search. `GLAppDelegate` builds the tab bar from
+that preference while reusing navigation stacks for destinations that remain
+visible. Omitted destinations stay accessible through the top-right More
+button. Its pushed list contains omitted library destinations, Upload, and
+Settings; the global Search screen filters tracks by title, artist, or album.
 
 ## Files
 

@@ -86,6 +86,10 @@
     });
 }
 
+- (void)showSearchField {
+    [self.tableView setContentOffset:CGPointZero animated:NO];
+}
+
 - (void)applySearch {
     NSString *text = self.searchBar.text;
     if (text.length) {

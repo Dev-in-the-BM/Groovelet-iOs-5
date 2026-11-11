@@ -76,9 +76,12 @@ goes into the next with no gap.
 
 ## Features
 
-- Five tabs: Artists, Albums, Songs, Playlists, and More
+- A customizable bottom bar with up to five of Artists, Albums, Songs, Folders,
+  Playlists, and Search
+- A top-bar More page for unselected library destinations, Upload, and Settings
 - A grid of the album art, and a page for each album
-- A search box at the top of each list, and an index of letters
+- Search across songs, artists, and albums, plus a search box on each list and
+  an index of letters
 - A mini player above the tabs, and a player screen with the art on a
   blurred copy of it
 - Gapless play, shuffle, repeat all, and repeat one

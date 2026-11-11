@@ -58,8 +58,8 @@ for each choice is in [docs/decisions.md](docs/decisions.md).
 ## Next
 
 - Add configurable library roots under `/var/mobile/Media`, with a scoped
-  folder-browser tab and safe playback path handling (implemented; device
-  verification pending; see
+  folder-browser tab, a configurable five-item bottom bar, and safe playback
+  path handling (implemented; device verification pending; see
   [goals.md](goals.md) and [status.md](status.md)).
 
 - Publish the release on GitHub with the .deb, and add it to the Cydia

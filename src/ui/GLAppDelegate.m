@@ -16,6 +16,7 @@
 #import "GLPlayback.h"
 #import "GLPlaylistViewController.h"
 #import "GLPlaylistsViewController.h"
+#import "GLSearchViewController.h"
 #import "GLSettings.h"
 #import "GLSongsViewController.h"
 #import "GLTabBarController.h"
@@ -23,8 +24,9 @@
 
 @interface GLAppDelegate ()
 @property (nonatomic, strong) GLTabBarController *tabs;
-@property (nonatomic, strong) GLMoreViewController *more;
 @property (nonatomic, copy) NSArray *scannedMusicFolders;
+@property (nonatomic, copy) NSArray *scannedTabBarItems;
+@property (nonatomic, copy) NSDictionary *tabNavigations;
 @end
 
 @implementation GLAppDelegate
@@ -39,16 +41,9 @@
 
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.backgroundColor = GLBackgroundColor();
-    self.more = [GLMoreViewController new];
     self.tabs = [GLTabBarController new];
-    NSArray *roots = @[ [GLArtistsViewController new], [GLAlbumsViewController new], [GLSongsViewController new],
-                        [[GLFoldersViewController alloc] initWithFolder:@""], self.more ];
-    NSMutableArray *navigations = [NSMutableArray array];
-    for (UIViewController *root in roots) {
-        [navigations addObject:[[GLNavigationController alloc] initWithRootViewController:root]];
-    }
-    self.tabs.viewControllers = navigations;
-    self.tabs.selectedIndex = 2;
+    self.tabNavigations = @{};
+    [self rebuildTabs];
     self.window.rootViewController = self.tabs;
     [self.window makeKeyAndVisible];
 
@@ -72,6 +67,9 @@
 }
 
 - (void)settingsChanged {
+    NSArray *tabBarItems = [GLSettings shared].tabBarItems;
+    if (![self.scannedTabBarItems isEqualToArray:tabBarItems]) [self rebuildTabs];
+
     NSArray *folders = [GLSettings shared].musicFolders;
     if (![self.scannedMusicFolders isEqualToArray:folders]) {
         self.scannedMusicFolders = folders;
@@ -82,6 +80,66 @@
         [GLLibrary shared].ignoreArticles = [GLSettings shared].ignoreArticles;
         [[GLLibrary shared] postChange];
     }
+}
+
+- (UIViewController *)controllerForTab:(NSString *)item {
+    if ([item isEqualToString:@"artists"]) return [GLArtistsViewController new];
+    if ([item isEqualToString:@"albums"]) return [GLAlbumsViewController new];
+    if ([item isEqualToString:@"songs"]) return [GLSongsViewController new];
+    if ([item isEqualToString:@"folders"]) return [[GLFoldersViewController alloc] initWithFolder:@""];
+    if ([item isEqualToString:@"playlists"]) return [GLPlaylistsViewController new];
+    if ([item isEqualToString:@"search"]) return [GLSearchViewController new];
+    return nil;
+}
+
+- (void)rebuildTabs {
+    NSString *selectedItem = nil;
+    UIViewController *selected = self.tabs.selectedViewController;
+    for (NSString *item in self.tabNavigations) {
+        if (self.tabNavigations[item] == selected) { selectedItem = item; break; }
+    }
+
+    NSArray *items = [GLSettings shared].tabBarItems;
+    NSMutableDictionary *navigationsByItem = [NSMutableDictionary dictionary];
+    NSMutableArray *navigations = [NSMutableArray array];
+    for (NSString *item in items) {
+        UINavigationController *navigation = self.tabNavigations[item];
+        if (!navigation) {
+            UIViewController *root = [self controllerForTab:item];
+            root.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"More"
+                style:UIBarButtonItemStyleBordered target:self action:@selector(showMore)];
+            navigation = [[GLNavigationController alloc] initWithRootViewController:root];
+        }
+        navigationsByItem[item] = navigation;
+        [navigations addObject:navigation];
+    }
+    self.scannedTabBarItems = items;
+    self.tabNavigations = navigationsByItem;
+    self.tabs.viewControllers = navigations;
+    NSUInteger index = [items indexOfObject:selectedItem ?: @"songs"];
+    self.tabs.selectedIndex = index == NSNotFound ? 0 : index;
+}
+
+- (NSArray *)hiddenTabItems {
+    NSMutableArray *hidden = [NSMutableArray array];
+    for (NSString *item in [GLSettings availableTabBarItems]) {
+        if (![[GLSettings shared].tabBarItems containsObject:item]) [hidden addObject:item];
+    }
+    return hidden;
+}
+
+- (GLMoreViewController *)pushMoreWithScreen:(NSString *)screenName animated:(BOOL)animated {
+    UINavigationController *navigation = (UINavigationController *)self.tabs.selectedViewController;
+    GLMoreViewController *more = [[GLMoreViewController alloc] initWithHiddenTabs:[self hiddenTabItems]];
+    [navigation pushViewController:more animated:animated];
+    if (screenName) [more openScreen:screenName];
+    return more;
+}
+
+- (void)showMore {
+    UINavigationController *navigation = (UINavigationController *)self.tabs.selectedViewController;
+    if ([navigation.topViewController isKindOfClass:[GLMoreViewController class]]) return;
+    [self pushMoreWithScreen:nil animated:YES];
 }
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication
@@ -122,14 +180,23 @@
     return path != nil;
 }
 
-// Opens a tab, a screen of More, or the album of a track.
+// Opens a visible tab, a hidden destination from More, or a detail screen.
 - (void)openScreen:(NSString *)name path:(NSString *)path {
     [self.tabs dismissViewControllerAnimated:NO completion:nil];
-    NSArray *tabs = @[ @"artists", @"albums", @"songs", @"folders", @"more" ];
+    NSArray *tabs = [GLSettings shared].tabBarItems;
     NSUInteger tab = [tabs indexOfObject:name];
     if (tab != NSNotFound) {
         self.tabs.selectedIndex = tab;
         [(UINavigationController *)self.tabs.selectedViewController popToRootViewControllerAnimated:NO];
+        return;
+    }
+    if ([[GLSettings availableTabBarItems] containsObject:name]) {
+        [self pushMoreWithScreen:name animated:NO];
+        return;
+    }
+    if ([name isEqualToString:@"more"]) {
+        [(UINavigationController *)self.tabs.selectedViewController popToRootViewControllerAnimated:NO];
+        [self pushMoreWithScreen:nil animated:NO];
         return;
     }
     if ([name isEqualToString:@"player"]) {
@@ -140,10 +207,9 @@
         [self.tabs showQueue];
         return;
     }
-    if ([@[ @"playlists", @"upload", @"settings" ] containsObject:name]) {
-        self.tabs.selectedIndex = 4;
-        [self.more.navigationController popToRootViewControllerAnimated:NO];
-        [self.more openScreen:name];
+    if ([@[ @"upload", @"settings" ] containsObject:name]) {
+        [(UINavigationController *)self.tabs.selectedViewController popToRootViewControllerAnimated:NO];
+        [self pushMoreWithScreen:name animated:NO];
         return;
     }
     if ([name isEqualToString:@"playlist"] && path) {
@@ -151,10 +217,12 @@
         playlist.kind = GLPlaylistFile;
         playlist.path = path;
         playlist.name = path.lastPathComponent.stringByDeletingPathExtension;
-        self.tabs.selectedIndex = 4;
+        NSUInteger playlistTab = [[GLSettings shared].tabBarItems indexOfObject:@"playlists"];
+        if (playlistTab != NSNotFound) self.tabs.selectedIndex = playlistTab;
         UINavigationController *navigation = (UINavigationController *)self.tabs.selectedViewController;
         [navigation popToRootViewControllerAnimated:NO];
-        [self.more openScreen:@"playlists"];
+        if (playlistTab == NSNotFound) [self pushMoreWithScreen:@"playlists" animated:NO];
+        navigation = (UINavigationController *)self.tabs.selectedViewController;
         [navigation pushViewController:[[GLPlaylistViewController alloc] initWithPlaylist:playlist] animated:NO];
         return;
     }
@@ -165,9 +233,12 @@
             if ([candidate.key isEqualToString:track.albumKey]) album = candidate;
         }
         if (!album) return;
-        self.tabs.selectedIndex = 1;
+        NSUInteger albumTab = [[GLSettings shared].tabBarItems indexOfObject:@"albums"];
+        if (albumTab != NSNotFound) self.tabs.selectedIndex = albumTab;
         UINavigationController *navigation = (UINavigationController *)self.tabs.selectedViewController;
         [navigation popToRootViewControllerAnimated:NO];
+        if (albumTab == NSNotFound) [self pushMoreWithScreen:@"albums" animated:NO];
+        navigation = (UINavigationController *)self.tabs.selectedViewController;
         [navigation pushViewController:[[GLAlbumViewController alloc] initWithAlbum:album] animated:NO];
     }
 }

@@ -21,5 +21,12 @@ extern NSString *const GLSettingsDidChangeNotification;
 @property (nonatomic) GLReplayGainMode replayGainMode;
 // Relative folder paths under /var/mobile/Media that the scanner may index.
 @property (nonatomic, copy) NSArray *musicFolders;
+// Library destinations shown in the bottom bar, in the app's fixed display order.
+// iOS supports at most five direct tab items.
+@property (nonatomic, copy) NSArray *tabBarItems;
+
++ (NSArray *)availableTabBarItems;
++ (NSArray *)defaultTabBarItems;
++ (NSString *)titleForTabBarItem:(NSString *)item;
 
 @end

@@ -1,5 +1,6 @@
-// The tabs of the app: Artists, Albums, Songs, Folders, and More. Playlists,
-// Upload, and Settings live in More. The mini player sits above the tab bar.
+// User-selected library destinations appear in the tab bar (up to five).
+// Secondary destinations and app tools are reached from each navigation bar.
+// The mini player sits above the tab bar.
 
 #import <UIKit/UIKit.h>
 

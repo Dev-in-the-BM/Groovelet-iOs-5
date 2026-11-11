@@ -11,6 +11,7 @@
 
 typedef NS_ENUM(NSInteger, GLSettingsSection) {
     GLSectionSound,
+    GLSectionNavigation,
     GLSectionLibrary,
     GLSectionAbout,
     GLSectionCount,
@@ -99,6 +100,72 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
 
 @end
 
+@interface GLTabBarSettingsViewController : UITableViewController
+@end
+
+@implementation GLTabBarSettingsViewController
+
+- (instancetype)init {
+    if ((self = [super initWithStyle:UITableViewStyleGrouped])) self.title = @"Tab Bar";
+    return self;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    GLStyleTable(self.tableView);
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [GLSettings availableTabBarItems].count;
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    return @"Choose up to five. Other destinations stay in More.";
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 48;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    NSString *item = [GLSettings availableTabBarItems][indexPath.row];
+    cell.textLabel.text = [GLSettings titleForTabBarItem:item];
+    cell.textLabel.font = GLFont(16);
+    cell.textLabel.textColor = GLTextColor();
+    cell.backgroundColor = GLSurfaceColor();
+    cell.accessoryType = [[GLSettings shared].tabBarItems containsObject:item]
+        ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    NSString *item = [GLSettings availableTabBarItems][indexPath.row];
+    NSMutableArray *selected = [[GLSettings shared].tabBarItems mutableCopy];
+    if ([selected containsObject:item]) {
+        if (selected.count == 1) {
+            [[[UIAlertView alloc] initWithTitle:@"Keep one tab"
+                                        message:@"At least one destination must stay in the tab bar."
+                                       delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+            return;
+        }
+        [selected removeObject:item];
+    } else {
+        if (selected.count == 5) {
+            [[[UIAlertView alloc] initWithTitle:@"Tab bar is full"
+                                        message:@"Choose up to five destinations. Other destinations stay in More."
+                                       delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+            return;
+        }
+        [selected addObject:item];
+    }
+    [GLSettings shared].tabBarItems = selected;
+    [tableView reloadData];
+}
+
+@end
+
 @implementation GLSettingsViewController
 
 - (instancetype)init {
@@ -123,11 +190,12 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return section == GLSectionSound ? 1 : 3;
+    if (section == GLSectionSound || section == GLSectionNavigation) return 1;
+    return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return @[ @"Sound", @"Library", @"About" ][section];
+    return @[ @"Sound", @"Navigation", @"Library", @"About" ][section];
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -180,6 +248,13 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
     }
+    if (indexPath.section == GLSectionNavigation) {
+        UITableViewCell *cell = [self cellWithTitle:@"Bottom bar"
+                                             detail:[NSString stringWithFormat:@"%lu of 5",
+                                                                              (unsigned long)settings.tabBarItems.count]];
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        return cell;
+    }
     if (indexPath.section == GLSectionLibrary) {
         switch (indexPath.row) {
             case 0:
@@ -228,7 +303,9 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    if (indexPath.section == GLSectionLibrary && indexPath.row == 1) {
+    if (indexPath.section == GLSectionNavigation) {
+        [self.navigationController pushViewController:[GLTabBarSettingsViewController new] animated:YES];
+    } else if (indexPath.section == GLSectionLibrary && indexPath.row == 1) {
         [self.navigationController pushViewController:[GLMusicFoldersViewController new] animated:YES];
     } else if (indexPath.section == GLSectionLibrary && indexPath.row == 2) {
         // This scan reads each file again, and makes the art again.
