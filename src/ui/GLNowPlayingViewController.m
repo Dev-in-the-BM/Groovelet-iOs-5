@@ -43,7 +43,7 @@
     label.font = font;
     label.textColor = color;
     label.backgroundColor = [UIColor clearColor];
-    label.textAlignment = NSTextAlignmentCenter;
+    label.textAlignment = 1;
     [self.view addSubview:label];
     return label;
 }
@@ -98,10 +98,10 @@
             forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel];
     [self.view addSubview:self.scrubber];
     self.elapsedLabel = [self labelWithFrame:CGRectMake(20, 338, 80, 14) font:GLFont(11) color:GLSecondaryTextColor()];
-    self.elapsedLabel.textAlignment = NSTextAlignmentLeft;
+    self.elapsedLabel.textAlignment = 0;
     self.remainingLabel = [self labelWithFrame:CGRectMake(220, 338, 80, 14) font:GLFont(11)
                                          color:GLSecondaryTextColor()];
-    self.remainingLabel.textAlignment = NSTextAlignmentRight;
+    self.remainingLabel.textAlignment = 2;
 
     CGFloat row = 360;
     self.shuffleButton = [self buttonWithIcon:GLIconShuffle size:20 frame:CGRectMake(14, row + 4, 44, 44)
@@ -114,11 +114,7 @@
                                       action:@selector(cycleRepeat)];
 
     MPVolumeView *volume = [[MPVolumeView alloc] initWithFrame:CGRectMake(24, 420, 272, 23)];
-    [volume setMinimumVolumeSliderImage:GLBarImage(GLTextColor()) forState:UIControlStateNormal];
-    [volume setMaximumVolumeSliderImage:GLBarImage([UIColor colorWithWhite:1 alpha:0.25]) forState:UIControlStateNormal];
-    // The slider of the volume view of iOS 6 puts the centre of the thumb 2.5
-    // points below the line, so the circle is higher in its image.
-    [volume setVolumeThumbImage:GLThumbImageWithOffset(12, GLTextColor(), -2.5) forState:UIControlStateNormal];
+    // iOS 5.1 does not let apps set the images of the system volume slider.
     [self.view addSubview:volume];
 
     UISwipeGestureRecognizer *swipe = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(close)];

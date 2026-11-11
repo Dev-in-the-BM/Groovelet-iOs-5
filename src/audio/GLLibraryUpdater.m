@@ -12,7 +12,7 @@ NSString *const GLScanDidEndNotification = @"GLScanDidEnd";
 @property (nonatomic) BOOL again;
 @property (nonatomic) BOOL readAll;
 @property (nonatomic, strong) GLScanResult *lastResult;
-@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, assign) dispatch_queue_t queue;
 @end
 
 @implementation GLLibraryUpdater
@@ -30,6 +30,12 @@ NSString *const GLScanDidEndNotification = @"GLScanDidEnd";
         dispatch_set_target_queue(_queue, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0));
     }
     return self;
+}
+
+- (void)dealloc {
+#if !defined(OS_OBJECT_USE_OBJC) || !OS_OBJECT_USE_OBJC
+    if (_queue) dispatch_release(_queue);
+#endif
 }
 
 - (void)scanAllFiles {

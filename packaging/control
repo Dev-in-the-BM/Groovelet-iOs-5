@@ -2,10 +2,10 @@ Package: io.github.stivengjekaj.groovelet
 Name: Groovelet
 Version: @VERSION@
 Architecture: iphoneos-arm
-Description: A light music player for iOS 6. It plays MP3, AAC, ALAC, FLAC, Opus, and more from the phone.
+Description: A music player for iOS 5.1. It plays MP3, AAC, ALAC, FLAC, Opus, and other formats from the phone.
 Maintainer: Stiven Gjekaj <stivenagostingjekaj@gmail.com>
 Author: Stiven Gjekaj <stivenagostingjekaj@gmail.com>
 Section: Multimedia
-Depends: firmware (>= 6.0)
+Depends: firmware (>= 5.1)
 Homepage: https://github.com/Stiven-Gjekaj/Groovelet
 Icon: file:///Applications/Groovelet.app/Icon@2x.png

@@ -105,7 +105,6 @@ BOOL GLHandleDebugLink(NSURL *url, UIViewController *root) {
         UIScrollView *view = nil;
         if ([visible isKindOfClass:[UITableViewController class]]) view = ((UITableViewController *)visible).tableView;
         for (UIView *subview in visible.view.subviews) {
-            if (!view && [subview isKindOfClass:[UICollectionView class]]) view = (UIScrollView *)subview;
         }
         if (view) [[GLScrollBench new] runOn:view seconds:[values[@"t"] doubleValue] ?: 10];
     }

@@ -26,7 +26,7 @@
     label.font = font;
     label.textColor = color;
     label.backgroundColor = [UIColor clearColor];
-    label.textAlignment = NSTextAlignmentCenter;
+    label.textAlignment = 1;
     label.numberOfLines = 0;
     [self.view addSubview:label];
     return label;
@@ -41,7 +41,7 @@
     // One line, so that a long address makes the font smaller.
     self.addressLabel.numberOfLines = 1;
     self.addressLabel.adjustsFontSizeToFitWidth = YES;
-    self.addressLabel.minimumScaleFactor = 0.6;
+    self.addressLabel.minimumFontSize = 13;
     self.hintLabel = [self labelAt:126 height:80 font:GLFont(13) color:GLSecondaryTextColor()];
     self.hintLabel.text = @"Drop files or whole folders on the page. They go into Media/Groovelet.\n"
                           @"The page works only while this screen is open.";

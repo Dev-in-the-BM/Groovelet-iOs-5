@@ -42,9 +42,9 @@ static UILabel *GLLabel(UIFont *font, UIColor *color) {
         _titleLabel = GLLabel(GLFont(16), GLTextColor());
         _subtitleLabel = GLLabel(GLFont(13), GLSecondaryTextColor());
         _numberLabel = GLLabel(GLFont(14), GLSecondaryTextColor());
-        _numberLabel.textAlignment = NSTextAlignmentCenter;
+        _numberLabel.textAlignment = 1;
         _timeLabel = GLLabel(GLFont(13), GLSecondaryTextColor());
-        _timeLabel.textAlignment = NSTextAlignmentRight;
+        _timeLabel.textAlignment = 2;
         for (UILabel *label in @[ _titleLabel, _subtitleLabel, _numberLabel, _timeLabel ]) {
             [self.contentView addSubview:label];
         }

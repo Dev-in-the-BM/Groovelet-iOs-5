@@ -8,7 +8,7 @@ static char GLRequestKey;
 
 @interface GLImageLoader ()
 @property (nonatomic, strong) NSCache *memory;
-@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, assign) dispatch_queue_t queue;
 @end
 
 @implementation GLImageLoader
@@ -37,6 +37,13 @@ static char GLRequestKey;
                                                      name:GLScanDidEndNotification object:nil];
     }
     return self;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+#if !defined(OS_OBJECT_USE_OBJC) || !OS_OBJECT_USE_OBJC
+    if (_queue) dispatch_release(_queue);
+#endif
 }
 
 - (void)clear {

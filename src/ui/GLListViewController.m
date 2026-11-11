@@ -43,7 +43,7 @@
     self.emptyLabel.font = GLFont(15);
     self.emptyLabel.textColor = GLSecondaryTextColor();
     self.emptyLabel.backgroundColor = [UIColor clearColor];
-    self.emptyLabel.textAlignment = NSTextAlignmentCenter;
+    self.emptyLabel.textAlignment = 1;
     self.emptyLabel.numberOfLines = 0;
     self.emptyLabel.hidden = YES;
     [self.tableView addSubview:self.emptyLabel];

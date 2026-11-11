@@ -31,7 +31,7 @@ static NSString *const GLTrackColumns =
 
 @interface GLLibrary ()
 @property (nonatomic) sqlite3 *db;
-@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, assign) dispatch_queue_t queue;
 @end
 
 @implementation GLLibrary
@@ -59,6 +59,9 @@ static NSString *const GLTrackColumns =
 
 - (void)dealloc {
     sqlite3_close(_db);
+#if !defined(OS_OBJECT_USE_OBJC) || !OS_OBJECT_USE_OBJC
+    if (_queue) dispatch_release(_queue);
+#endif
 }
 
 #pragma mark SQL

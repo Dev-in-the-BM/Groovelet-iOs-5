@@ -68,7 +68,7 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>MinimumOSVersion</key>
-    <string>6.0</string>
+    <string>5.1</string>
     <key>UIAppFonts</key>
     <array>
         <string>Inter-Regular.ttf</string>

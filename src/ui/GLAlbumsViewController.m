@@ -4,49 +4,59 @@
 #import "GLLibrary.h"
 #import "GLTheme.h"
 
-// One album in the grid: the art, the title, and the artist.
-@interface GLAlbumCell : UICollectionViewCell
+// A row shows one album. UITableView works on iOS 5.1.
+@interface GLAlbumCell : UITableViewCell
 @property (nonatomic, strong) CALayer *art;
-@property (nonatomic, strong) UILabel *title;
+@property (nonatomic, strong) UILabel *albumTitle;
 @property (nonatomic, strong) UILabel *artist;
 @end
 
 @implementation GLAlbumCell
 
-- (instancetype)initWithFrame:(CGRect)frame {
-    if ((self = [super initWithFrame:frame])) {
-        CGFloat side = frame.size.width;
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    if ((self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])) {
+        self.backgroundColor = GLBackgroundColor();
+        self.contentView.backgroundColor = GLBackgroundColor();
         _art = [CALayer layer];
-        _art.frame = CGRectMake(0, 0, side, side);
         _art.contentsGravity = kCAGravityResizeAspectFill;
         _art.masksToBounds = YES;
-        _art.cornerRadius = 4;
+        _art.cornerRadius = 3;
         _art.backgroundColor = GLSurfaceColor().CGColor;
         _art.actions = @{ @"contents": [NSNull null] };
         [self.contentView.layer addSublayer:_art];
-        _title = [[UILabel alloc] initWithFrame:CGRectMake(0, side + 6, side, 18)];
-        _title.font = GLBoldFont(13);
-        _title.textColor = GLTextColor();
-        _artist = [[UILabel alloc] initWithFrame:CGRectMake(0, side + 24, side, 16)];
-        _artist.font = GLFont(12);
+        _albumTitle = [UILabel new];
+        _albumTitle.font = GLBoldFont(15);
+        _albumTitle.textColor = GLTextColor();
+        _albumTitle.backgroundColor = GLBackgroundColor();
+        [self.contentView addSubview:_albumTitle];
+        _artist = [UILabel new];
+        _artist.font = GLFont(13);
         _artist.textColor = GLSecondaryTextColor();
-        for (UILabel *label in @[ _title, _artist ]) {
-            label.backgroundColor = GLBackgroundColor();
-            [self.contentView addSubview:label];
-        }
+        _artist.backgroundColor = GLBackgroundColor();
+        [self.contentView addSubview:_artist];
     }
     return self;
 }
 
-- (void)setHighlighted:(BOOL)highlighted {
-    [super setHighlighted:highlighted];
-    self.art.opacity = highlighted ? 0.6 : 1;
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    CGFloat height = self.contentView.bounds.size.height;
+    _art.frame = CGRectMake(10, (height - 52) / 2, 52, 52);
+    CGFloat x = 74;
+    CGFloat width = MAX(0, self.contentView.bounds.size.width - x - 10);
+    _albumTitle.frame = CGRectMake(x, (height - 38) / 2, width, 20);
+    _artist.frame = CGRectMake(x, (height - 38) / 2 + 20, width, 18);
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+    self.art.opacity = selected ? 0.6 : 1;
 }
 
 @end
 
-@interface GLAlbumsViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UISearchBarDelegate>
-@property (nonatomic, strong) UICollectionView *grid;
+@interface GLAlbumsViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
+@property (nonatomic, strong) UITableView *table;
 @property (nonatomic, strong) UISearchBar *searchBar;
 @property (nonatomic, strong) UILabel *emptyLabel;
 @property (nonatomic, strong) NSArray *albums;
@@ -56,7 +66,7 @@
 
 @implementation GLAlbumsViewController
 
-- (instancetype)init {
+- (id)init {
     if ((self = [super init])) {
         self.title = @"Albums";
         self.tabBarItem.image = [UIImage imageNamed:@"Tab-albums.png"];
@@ -73,26 +83,20 @@
     self.searchBar.placeholder = @"Search albums";
     self.searchBar.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self.view addSubview:self.searchBar];
-    UICollectionViewFlowLayout *layout = [UICollectionViewFlowLayout new];
-    layout.itemSize = CGSizeMake(140, 184);
-    layout.minimumInteritemSpacing = 12;
-    layout.minimumLineSpacing = 14;
-    layout.sectionInset = UIEdgeInsetsMake(14, 14, 14, 14);
-    self.grid = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 44, bounds.size.width, bounds.size.height - 44)
-                                   collectionViewLayout:layout];
-    self.grid.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.grid.backgroundColor = GLBackgroundColor();
-    self.grid.indicatorStyle = UIScrollViewIndicatorStyleWhite;
-    self.grid.alwaysBounceVertical = YES;
-    self.grid.dataSource = self;
-    self.grid.delegate = self;
-    [self.grid registerClass:[GLAlbumCell class] forCellWithReuseIdentifier:@"album"];
-    [self.view addSubview:self.grid];
+    self.table = [[UITableView alloc] initWithFrame:CGRectMake(0, 44, bounds.size.width, bounds.size.height - 44)
+                                              style:UITableViewStylePlain];
+    self.table.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.table.backgroundColor = GLBackgroundColor();
+    self.table.separatorColor = GLSurfaceColor();
+    self.table.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+    self.table.dataSource = self;
+    self.table.delegate = self;
+    [self.view addSubview:self.table];
     self.emptyLabel = [[UILabel alloc] initWithFrame:CGRectMake(30, 120, bounds.size.width - 60, 60)];
     self.emptyLabel.font = GLFont(15);
     self.emptyLabel.textColor = GLSecondaryTextColor();
     self.emptyLabel.backgroundColor = [UIColor clearColor];
-    self.emptyLabel.textAlignment = NSTextAlignmentCenter;
+    self.emptyLabel.textAlignment = 1;
     self.emptyLabel.numberOfLines = 0;
     self.emptyLabel.hidden = YES;
     [self.view addSubview:self.emptyLabel];
@@ -125,28 +129,35 @@
     } else {
         self.visibleAlbums = self.albums;
     }
-    [self.grid reloadData];
+    [self.table reloadData];
     self.emptyLabel.text = text.length ? @"No results" : @"No albums yet.";
     self.emptyLabel.hidden = self.visibleAlbums.count > 0;
 }
 
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return self.visibleAlbums.count;
 }
 
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    GLAlbumCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"album" forIndexPath:indexPath];
-    GLAlbum *album = self.visibleAlbums[indexPath.item];
-    cell.title.text = album.title;
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 70;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *reuseIdentifier = @"album";
+    GLAlbumCell *cell = (GLAlbumCell *)[tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (!cell) cell = [[GLAlbumCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    GLAlbum *album = [self.visibleAlbums objectAtIndex:indexPath.row];
+    cell.albumTitle.text = album.title;
     cell.artist.text = album.artist;
-    [[GLImageLoader shared] showArtOfAlbum:album.key path:album.artPath points:140 inLayer:cell.art];
+    [[GLImageLoader shared] showArtOfAlbum:album.key path:album.artPath points:52 inLayer:cell.art];
     return cell;
 }
 
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [self.searchBar resignFirstResponder];
-    GLAlbum *album = self.visibleAlbums[indexPath.item];
+    GLAlbum *album = [self.visibleAlbums objectAtIndex:indexPath.row];
     [self.navigationController pushViewController:[[GLAlbumViewController alloc] initWithAlbum:album] animated:YES];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {

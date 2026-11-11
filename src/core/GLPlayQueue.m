@@ -189,15 +189,14 @@
     NSMutableArray *paths = [NSMutableArray arrayWithCapacity:self.list.count];
     // The place of each entry, by its pointer. A search in the list for each
     // entry takes too long for a queue of 10000 entries.
-    NSMapTable *places = [NSMapTable mapTableWithKeyOptions:NSPointerFunctionsObjectPointerPersonality
-                                               valueOptions:NSPointerFunctionsStrongMemory];
+    NSMutableDictionary *places = [NSMutableDictionary dictionaryWithCapacity:self.list.count];
     [self.list enumerateObjectsUsingBlock:^(GLQueueEntry *entry, NSUInteger i, BOOL *stop) {
         [paths addObject:entry.track.path ?: @""];
-        [places setObject:@(i) forKey:entry];
+        [places setObject:@(i) forKey:[NSValue valueWithNonretainedObject:entry]];
     }];
     NSMutableArray *source = [NSMutableArray arrayWithCapacity:self.sourceOrder.count];
     for (GLQueueEntry *entry in self.sourceOrder) {
-        NSNumber *place = [places objectForKey:entry];
+        NSNumber *place = [places objectForKey:[NSValue valueWithNonretainedObject:entry]];
         if (place) [source addObject:place];
     }
     return @{

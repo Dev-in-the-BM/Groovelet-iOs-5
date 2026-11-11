@@ -55,14 +55,11 @@ void GLApplyTheme(void) {
     [[UISegmentedControl appearance] setTintColor:GLColor(0x333333)];
     [[UISwitch appearance] setOnTintColor:GLAccentColor()];
     [[UISlider appearance] setMinimumTrackTintColor:GLAccentColor()];
-    [[UIRefreshControl appearance] setTintColor:GLTextColor()];
 }
 
 void GLStyleTable(UITableView *table) {
     table.backgroundColor = GLBackgroundColor();
     table.backgroundView = nil;
     table.separatorColor = GLSeparatorColor();
-    table.sectionIndexColor = GLSecondaryTextColor();
-    table.sectionIndexTrackingBackgroundColor = [UIColor colorWithWhite:1 alpha:0.06];
     table.indicatorStyle = UIScrollViewIndicatorStyleWhite;
 }

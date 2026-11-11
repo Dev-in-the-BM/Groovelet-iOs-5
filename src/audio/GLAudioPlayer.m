@@ -4,23 +4,28 @@
 #import "GLDecoders.h"
 #import "GLRenderer.h"
 #import "GLReplayGain.h"
+#import <AudioToolbox/AudioSession.h>
 
 // 4 buffers of 8192 frames hold 0.74 seconds of sound. A larger buffer
 // wakes the CPU less often. A seek fills them again at once.
 enum { GLBufferCount = 4, GLBufferFrames = 8192 };
 
-@interface GLAudioPlayer ()
+static NSValue *GLItemKey(id item) {
+    return [NSValue valueWithNonretainedObject:item];
+}
+
+@interface GLAudioPlayer () <AVAudioSessionDelegate>
 @property (nonatomic) AudioQueueRef queue;
 @property (nonatomic, strong) GLRenderer *renderer;
-@property (nonatomic, strong) dispatch_queue_t openQueue;
+@property (nonatomic, assign) dispatch_queue_t openQueue;
 @property (nonatomic, strong) NSTimer *timer;
 @property (nonatomic) BOOL playing;
 @property (nonatomic, strong) id currentItem;
 @property (nonatomic) double currentTime;
 @property (nonatomic) double duration;
-@property (nonatomic, strong) NSMapTable *durations;
-@property (nonatomic, strong) NSMapTable *paths;
-@property (nonatomic, strong) NSMapTable *gains;
+@property (nonatomic, strong) NSMutableDictionary *durations;
+@property (nonatomic, strong) NSMutableDictionary *paths;
+@property (nonatomic, strong) NSMutableDictionary *gains;
 @property (nonatomic) BOOL interrupted;
 @property (nonatomic) NSUInteger nextToken;
 // The start frame of the play that the clock last saw.
@@ -28,6 +33,7 @@ enum { GLBufferCount = 4, GLBufferFrames = 8192 };
 // The buffers that came back with no sound to fill, at the end of the
 // stream. A next track that comes late fills them again.
 @property (nonatomic, strong) NSMutableArray *idleBuffers;
+- (void)routeWasRemoved;
 @end
 
 @interface GLAudioPlayer (Fill)
@@ -41,32 +47,52 @@ static void GLFillBuffer(void *context, AudioQueueRef queue, AudioQueueBufferRef
     }
 }
 
+// iOS 5 reports route changes through Audio Session Services.
+static void GLRouteChanged(void *context, AudioSessionPropertyID property,
+                           UInt32 size, const void *value) {
+    if (property != kAudioSessionProperty_AudioRouteChange || !value) return;
+    CFDictionaryRef changes = (CFDictionaryRef)value;
+    CFNumberRef reason = (CFNumberRef)CFDictionaryGetValue(
+        changes, CFSTR(kAudioSession_AudioRouteChangeKey_Reason));
+    SInt32 reasonValue = 0;
+    if (reason && CFNumberGetValue(reason, kCFNumberSInt32Type, &reasonValue) &&
+        reasonValue == kAudioSessionRouteChangeReason_OldDeviceUnavailable) {
+        GLAudioPlayer *player = (__bridge GLAudioPlayer *)context;
+        dispatch_async(dispatch_get_main_queue(), ^{ [player routeWasRemoved]; });
+    }
+}
+
 @implementation GLAudioPlayer
 
 - (instancetype)init {
     if ((self = [super init])) {
         _renderer = [GLRenderer new];
         _openQueue = dispatch_queue_create("GLAudioPlayer.open", DISPATCH_QUEUE_SERIAL);
-        _durations = [NSMapTable strongToStrongObjectsMapTable];
-        _paths = [NSMapTable strongToStrongObjectsMapTable];
-        _gains = [NSMapTable strongToStrongObjectsMapTable];
+        _durations = [NSMutableDictionary dictionary];
+        _paths = [NSMutableDictionary dictionary];
+        _gains = [NSMutableDictionary dictionary];
         _idleBuffers = [NSMutableArray array];
         _volume = 1;
         AVAudioSession *session = [AVAudioSession sharedInstance];
         [session setCategory:AVAudioSessionCategoryPlayback error:NULL];
-        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-        [center addObserver:self selector:@selector(interruption:) name:AVAudioSessionInterruptionNotification
-                     object:session];
-        [center addObserver:self selector:@selector(routeChange:) name:AVAudioSessionRouteChangeNotification
-                     object:session];
+        // These delegate and property-listener APIs also work on iOS 5.1.
+        session.delegate = self;
+        AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange,
+                                        GLRouteChanged, (__bridge void *)self);
     }
     return self;
 }
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    AudioSessionRemovePropertyListenerWithUserData(kAudioSessionProperty_AudioRouteChange,
+                                                    GLRouteChanged, (__bridge void *)self);
+    [AVAudioSession sharedInstance].delegate = nil;
     [_timer invalidate];
     if (_queue) AudioQueueDispose(_queue, true);
+#if !defined(OS_OBJECT_USE_OBJC) || !OS_OBJECT_USE_OBJC
+    if (_openQueue) dispatch_release(_openQueue);
+#endif
 }
 
 #pragma mark The queue
@@ -159,9 +185,9 @@ static id<GLDecoder> GLOpenWithGain(NSString *path, double gain) {
     [self.durations removeAllObjects];
     [self.paths removeAllObjects];
     [self.gains removeAllObjects];
-    [self.durations setObject:@(decoder.duration) forKey:item];
-    [self.paths setObject:path forKey:item];
-    [self.gains setObject:@(gain) forKey:item];
+    [self.durations setObject:@(decoder.duration) forKey:GLItemKey(item)];
+    [self.paths setObject:path forKey:GLItemKey(item)];
+    [self.gains setObject:@(gain) forKey:GLItemKey(item)];
     self.nextToken++;
     [self.renderer setNextItem:nil decoder:nil];
     [self.renderer startItem:item decoder:decoder atTime:seconds];
@@ -194,9 +220,9 @@ static id<GLDecoder> GLOpenWithGain(NSString *path, double gain) {
         id<GLDecoder> decoder = GLOpenWithGain(path, gain);
         dispatch_async(dispatch_get_main_queue(), ^{
             if (token != self.nextToken || !decoder) return;
-            [self.durations setObject:@(decoder.duration) forKey:item];
-            [self.paths setObject:path forKey:item];
-            [self.gains setObject:@(gain) forKey:item];
+            [self.durations setObject:@(decoder.duration) forKey:GLItemKey(item)];
+            [self.paths setObject:path forKey:GLItemKey(item)];
+            [self.gains setObject:@(gain) forKey:GLItemKey(item)];
             [self.renderer setNextItem:item decoder:decoder];
             if (self.queue) [self refillIdleBuffers];
         });
@@ -226,13 +252,13 @@ static id<GLDecoder> GLOpenWithGain(NSString *path, double gain) {
     if (reading != self.currentItem) {
         // The renderer reads the next track already. Open the current track
         // again, and make the track that the renderer read the next one.
-        id<GLDecoder> decoder = GLOpenWithGain([self.paths objectForKey:self.currentItem],
-                                               [[self.gains objectForKey:self.currentItem] doubleValue]);
+        id<GLDecoder> decoder = GLOpenWithGain([self.paths objectForKey:GLItemKey(self.currentItem)],
+                                               [[self.gains objectForKey:GLItemKey(self.currentItem)] doubleValue]);
         if (!decoder) return;
         [self.renderer startItem:self.currentItem decoder:decoder atTime:seconds];
         if (reading) {
-            [self setNextItem:reading path:[self.paths objectForKey:reading]
-                         gain:[[self.gains objectForKey:reading] doubleValue]];
+            [self setNextItem:reading path:[self.paths objectForKey:GLItemKey(reading)]
+                         gain:[[self.gains objectForKey:GLItemKey(reading)] doubleValue]];
         }
     } else if (![self.renderer restartAtTime:seconds]) {
         return;
@@ -270,7 +296,7 @@ static id<GLDecoder> GLOpenWithGain(NSString *path, double gain) {
     if (position.item && (position.item != self.currentItem || position.startFrame != self.currentStartFrame)) {
         self.currentStartFrame = position.startFrame;
         self.currentItem = position.item;
-        self.duration = [[self.durations objectForKey:position.item] doubleValue];
+        self.duration = [[self.durations objectForKey:GLItemKey(position.item)] doubleValue];
         self.currentTime = position.time;
         [self.delegate audioPlayer:self didStartItem:position.item];
     } else if (position.item) {
@@ -291,26 +317,25 @@ static id<GLDecoder> GLOpenWithGain(NSString *path, double gain) {
 
 #pragma mark The audio session
 
-- (void)interruption:(NSNotification *)notification {
+- (void)beginInterruption {
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSUInteger type = [notification.userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
-        if (type == AVAudioSessionInterruptionTypeBegan) {
-            if (!self.playing) return;
-            [self pause];
-            self.interrupted = YES;
-        } else {
-            NSUInteger options = [notification.userInfo[AVAudioSessionInterruptionOptionKey] unsignedIntegerValue];
-            BOOL resume = self.interrupted && (options & AVAudioSessionInterruptionOptionShouldResume);
-            self.interrupted = NO;
-            if (resume) [self resume];
-        }
+        if (!self.playing) return;
+        [self pause];
+        self.interrupted = YES;
         [self.delegate audioPlayerDidChangeState:self];
     });
 }
 
-- (void)routeChange:(NSNotification *)notification {
-    NSUInteger reason = [notification.userInfo[AVAudioSessionRouteChangeReasonKey] unsignedIntegerValue];
-    if (reason != AVAudioSessionRouteChangeReasonOldDeviceUnavailable) return;
+- (void)endInterruptionWithFlags:(NSUInteger)flags {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        BOOL resume = self.interrupted && (flags & AVAudioSessionInterruptionFlags_ShouldResume);
+        self.interrupted = NO;
+        if (resume) [self resume];
+        [self.delegate audioPlayerDidChangeState:self];
+    });
+}
+
+- (void)routeWasRemoved {
     // The headphones came out. Do not play from the speaker.
     dispatch_async(dispatch_get_main_queue(), ^{
         if (!self.playing) return;

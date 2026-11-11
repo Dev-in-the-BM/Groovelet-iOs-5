@@ -16,8 +16,8 @@ static NSString *GLUploadPage(void);
 @property (nonatomic, copy) NSString *directory;
 @property (nonatomic) uint16_t port;
 @property (nonatomic) int listenSocket;
-@property (nonatomic, strong) dispatch_source_t acceptSource;
-@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, assign) dispatch_source_t acceptSource;
+@property (nonatomic, assign) dispatch_queue_t queue;
 @end
 
 @implementation GLUploadServer
@@ -33,6 +33,9 @@ static NSString *GLUploadPage(void);
 
 - (void)dealloc {
     [self stop];
+#if !defined(OS_OBJECT_USE_OBJC) || !OS_OBJECT_USE_OBJC
+    if (_queue) dispatch_release(_queue);
+#endif
 }
 
 - (BOOL)running {
@@ -93,8 +96,14 @@ static int GLListen(uint16_t port, BOOL loopbackOnly, uint16_t *boundPort) {
 }
 
 - (void)stop {
-    if (self.acceptSource) dispatch_source_cancel(self.acceptSource);
+    dispatch_source_t source = self.acceptSource;
     self.acceptSource = nil;
+    if (source) {
+        dispatch_source_cancel(source);
+#if !defined(OS_OBJECT_USE_OBJC) || !OS_OBJECT_USE_OBJC
+        dispatch_release(source);
+#endif
+    }
     self.listenSocket = -1;
 }
 

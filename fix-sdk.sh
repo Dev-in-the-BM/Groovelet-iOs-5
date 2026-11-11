@@ -11,6 +11,10 @@ SDK="$ROOT/sdks/iPhoneOS9.3.sdk"
 find "$SDK" -name '*.tbd' -print0 | xargs -0 perl -pi -e \
     's{(archs:\s*\[)([^\]]*)\]}{my ($h, $l) = ($1, $2); $l = join(", ", grep { !/^(?:i386|x86_64)$/ } split(/\s*,\s*/, $l =~ s/^\s+|\s+$//gr)); "$h $l ]"}ge'
 
+# These private libraries exist in newer SDKs, not in the iOS 5 runtime.
+find "$SDK" -name '*.tbd' -print0 | xargs -0 perl -pi -e \
+    's{,\s*/usr/lib/system/liblaunch\.dylib}{}g'
+
 # The 9.3 SDK puts the URL loading classes in CFNetwork. iOS 6 has them in
 # Foundation. Add them to the Foundation stub so that the linker binds them
 # to Foundation, where the iOS 6 loader finds them.
@@ -23,6 +27,31 @@ MOVED="_NSCachedURLResponse, _NSHTTPCookie, _NSHTTPCookieStorage, _NSHTTPURLResp
 if ! grep -q '_NSURLConnection,' "$FOUNDATION"; then
     MOVED="$MOVED" perl -0pi -e 's/(objc-classes:\s*\[\s*)/$1$ENV{MOVED}/' "$FOUNDATION"
 fi
+
+# iOS 5 exports NSObject from Foundation. The newer SDK says libobjc exports it.
+python3 - "$SDK" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+sdk = Path(sys.argv[1])
+for name in ("libobjc.tbd", "libobjc.A.tbd"):
+    path = sdk / "usr/lib" / name
+    text = path.read_text()
+    text = re.sub(r"(objc-classes:\s*\[\s*)_NSObject,\s*", r"\1", text)
+    text = re.sub(r"(objc-ivars:\s*\[\s*)_NSObject\.isa,\s*", r"\1", text)
+    path.write_text(text)
+
+path = sdk / "System/Library/Frameworks/Foundation.framework/Foundation.tbd"
+text = path.read_text()
+text = re.sub(r"(?m)^\s*objc-classes:\s*\[ _NSObject \]\n", "", text)
+match = re.search(r"(?m)^(\s*objc-classes:\s*\[)([^\]]*)\]", text)
+if not match:
+    raise SystemExit("Cannot find Foundation objc-classes")
+if "_NSObject" not in match.group(2):
+    text = text[:match.start(2)] + " _NSObject," + text[match.start(2):]
+path.write_text(text)
+PY
 
 # The 9.3 SDK moved some C string functions to libsystem_platform, and its
 # stub exports them only with a "_platform_" prefix. iOS 6 has no

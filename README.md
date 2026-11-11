@@ -2,7 +2,7 @@
 
 ![Groovelet](assets/brand/wordmark.svg)
 
-### A music player for the iPhone 4S on iOS 6
+### A music player for jailbroken iPhones
 
 _Native UIKit, gapless, light on the A5 chip_
 
@@ -53,6 +53,9 @@ _Native UIKit, gapless, light on the A5 chip_
 </td>
 </tr>
 </table>
+
+This branch targets iOS 5.1. It is an unverified backport. See
+[`docs/ios-5.1-backport.md`](docs/ios-5.1-backport.md) before you build.
 
 ## Overview
 
