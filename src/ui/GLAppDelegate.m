@@ -27,6 +27,10 @@
 @property (nonatomic, copy) NSArray *scannedMusicFolders;
 @property (nonatomic, copy) NSArray *scannedTabBarItems;
 @property (nonatomic, copy) NSDictionary *tabNavigations;
+@property (nonatomic) BOOL tabBarRebuildPending;
+- (BOOL)isTabBarSettingsVisible;
+- (void)tabBarSettingsDidClose;
+- (void)applyPendingTabRebuild;
 @end
 
 @implementation GLAppDelegate
@@ -38,10 +42,13 @@
     self.scannedMusicFolders = [GLSettings shared].musicFolders;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(settingsChanged)
                                                  name:GLSettingsDidChangeNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tabBarSettingsDidClose)
+                                                 name:GLTabBarSettingsDidCloseNotification object:nil];
 
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.backgroundColor = GLBackgroundColor();
     self.tabs = [GLTabBarController new];
+    self.tabs.delegate = self;
     self.tabNavigations = @{};
     [self rebuildTabs];
     self.window.rootViewController = self.tabs;
@@ -68,7 +75,10 @@
 
 - (void)settingsChanged {
     NSArray *tabBarItems = [GLSettings shared].tabBarItems;
-    if (![self.scannedTabBarItems isEqualToArray:tabBarItems]) [self rebuildTabs];
+    if (![self.scannedTabBarItems isEqualToArray:tabBarItems]) {
+        if ([self isTabBarSettingsVisible]) self.tabBarRebuildPending = YES;
+        else [self rebuildTabs];
+    }
 
     NSArray *folders = [GLSettings shared].musicFolders;
     if (![self.scannedMusicFolders isEqualToArray:folders]) {
@@ -80,6 +90,30 @@
         [GLLibrary shared].ignoreArticles = [GLSettings shared].ignoreArticles;
         [[GLLibrary shared] postChange];
     }
+}
+
+- (BOOL)isTabBarSettingsVisible {
+    Class settingsClass = NSClassFromString(@"GLTabBarSettingsViewController");
+    UINavigationController *navigation = (UINavigationController *)self.tabs.selectedViewController;
+    if (!settingsClass || ![navigation isKindOfClass:[UINavigationController class]]) return NO;
+    for (UIViewController *viewController in navigation.viewControllers) {
+        if ([viewController isKindOfClass:settingsClass]) return YES;
+    }
+    return NO;
+}
+
+- (void)tabBarSettingsDidClose {
+    [self applyPendingTabRebuild];
+}
+
+- (void)applyPendingTabRebuild {
+    if (!self.tabBarRebuildPending || [self isTabBarSettingsVisible]) return;
+    self.tabBarRebuildPending = NO;
+    [self rebuildTabs];
+}
+
+- (void)tabBarController:(UITabBarController *)tabBarController didSelectViewController:(UIViewController *)viewController {
+    [self applyPendingTabRebuild];
 }
 
 - (UIViewController *)controllerForTab:(NSString *)item {

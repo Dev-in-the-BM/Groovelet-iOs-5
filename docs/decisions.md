@@ -245,7 +245,9 @@ lyrics, and scrobbling.
   Apple Music.
 - **A configurable tab bar:** choose up to five of Artists, Albums, Songs,
   Folders, Playlists, and Search. The default is the five library tabs other
-  than Search. Unselected destinations remain reachable from More.
+  than Search. Unselected destinations remain reachable from More. In Settings,
+  checkmarks toggle visibility and drag handles change tab order; applying a
+  changed tab set waits until the owner leaves Settings.
 - **More is a navigation-bar button, not a tab.** It opens a standard pushed
   list of unselected library destinations, Upload, and Settings. This keeps
   every chosen destination in the iOS tab bar without invoking UIKit's tab

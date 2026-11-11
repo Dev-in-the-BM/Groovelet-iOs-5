@@ -101,6 +101,8 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
 @end
 
 @interface GLTabBarSettingsViewController : UITableViewController
+@property (nonatomic, strong) NSMutableArray *orderedItems;
+@property (nonatomic, strong) NSMutableSet *selectedItems;
 @end
 
 @implementation GLTabBarSettingsViewController
@@ -113,60 +115,98 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
 - (void)viewDidLoad {
     [super viewDidLoad];
     GLStyleTable(self.tableView);
+    self.orderedItems = [[GLSettings shared].tabBarOrder mutableCopy];
+    self.selectedItems = [NSMutableSet setWithArray:[GLSettings shared].tabBarItems];
+    self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.tableView.allowsSelectionDuringEditing = NO;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [GLSettings availableTabBarItems].count;
+    return self.orderedItems.count;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return @"Choose up to five. Other destinations stay in More.";
+    return @"Tap rows to show or hide. Tap Edit to drag and reorder. Up to five stay in the bottom bar.";
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 48;
+    return 60;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
-    NSString *item = [GLSettings availableTabBarItems][indexPath.row];
+    NSString *item = self.orderedItems[indexPath.row];
     cell.textLabel.text = [GLSettings titleForTabBarItem:item];
     cell.textLabel.font = GLFont(16);
     cell.textLabel.textColor = GLTextColor();
     cell.backgroundColor = GLSurfaceColor();
-    cell.accessoryType = [[GLSettings shared].tabBarItems containsObject:item]
+    cell.accessoryType = [self.selectedItems containsObject:item]
         ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    NSString *item = [GLSettings availableTabBarItems][indexPath.row];
-    NSMutableArray *selected = [[GLSettings shared].tabBarItems mutableCopy];
-    if ([selected containsObject:item]) {
-        if (selected.count == 1) {
+    NSString *item = self.orderedItems[indexPath.row];
+    if ([self.selectedItems containsObject:item]) {
+        if (self.selectedItems.count == 1) {
             [[[UIAlertView alloc] initWithTitle:@"Keep one tab"
                                         message:@"At least one destination must stay in the tab bar."
                                        delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
             return;
         }
-        [selected removeObject:item];
+        [self.selectedItems removeObject:item];
     } else {
-        if (selected.count == 5) {
+        if (self.selectedItems.count == 5) {
             [[[UIAlertView alloc] initWithTitle:@"Tab bar is full"
                                         message:@"Choose up to five destinations. Other destinations stay in More."
                                        delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
             return;
         }
-        [selected addObject:item];
+        [self.selectedItems addObject:item];
     }
-    [GLSettings shared].tabBarItems = selected;
+    NSMutableArray *selectedInOrder = [NSMutableArray array];
+    for (NSString *orderedItem in self.orderedItems) {
+        if ([self.selectedItems containsObject:orderedItem]) [selectedInOrder addObject:orderedItem];
+    }
+    [GLSettings shared].tabBarItems = selectedInOrder;
     [tableView reloadData];
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return UITableViewCellEditingStyleNone;
+}
+
+- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
+    return YES;
+}
+
+- (BOOL)tableView:(UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath *)indexPath {
+    return NO;
+}
+
+- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)from
+      toIndexPath:(NSIndexPath *)to {
+    NSString *item = self.orderedItems[from.row];
+    [self.orderedItems removeObjectAtIndex:from.row];
+    [self.orderedItems insertObject:item atIndex:to.row];
+    [GLSettings shared].tabBarOrder = self.orderedItems;
 }
 
 @end
 
 @implementation GLSettingsViewController
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    if (self.isMovingFromParentViewController) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:GLTabBarSettingsDidCloseNotification object:self];
+    }
+}
 
 - (instancetype)init {
     if ((self = [super initWithStyle:UITableViewStyleGrouped])) self.title = @"Settings";

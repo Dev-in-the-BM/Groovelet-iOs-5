@@ -2,6 +2,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface GLAppDelegate : UIResponder <UIApplicationDelegate>
+@interface GLAppDelegate : UIResponder <UIApplicationDelegate, UITabBarControllerDelegate>
 @property (nonatomic, strong) UIWindow *window;
 @end

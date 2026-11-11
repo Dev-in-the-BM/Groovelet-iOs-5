@@ -1,11 +1,13 @@
 #import "GLSettings.h"
 
 NSString *const GLSettingsDidChangeNotification = @"GLSettingsDidChange";
+NSString *const GLTabBarSettingsDidCloseNotification = @"GLTabBarSettingsDidClose";
 
 static NSString *const GLIgnoreArticlesKey = @"ignoreArticles";
 static NSString *const GLReplayGainKey = @"replayGainMode";
 static NSString *const GLMusicFoldersKey = @"musicFolders";
 static NSString *const GLTabBarItemsKey = @"tabBarItems";
+static NSString *const GLTabBarOrderKey = @"tabBarOrder";
 
 static NSArray *GLAvailableTabBarItems(void) {
     return @[ @"artists", @"albums", @"songs", @"folders", @"playlists", @"search" ];
@@ -25,6 +27,7 @@ static NSArray *GLDefaultTabBarItems(void) {
         [[NSUserDefaults standardUserDefaults] registerDefaults:@{
             GLIgnoreArticlesKey: @YES, GLReplayGainKey: @(GLReplayGainTrack),
             GLMusicFoldersKey: @[ @"Groovelet" ], GLTabBarItemsKey: GLDefaultTabBarItems(),
+            GLTabBarOrderKey: GLAvailableTabBarItems(),
         }];
     });
     return shared;
@@ -98,7 +101,7 @@ static NSArray *GLDefaultTabBarItems(void) {
 - (NSArray *)tabBarItems {
     NSArray *stored = [[NSUserDefaults standardUserDefaults] arrayForKey:GLTabBarItemsKey];
     NSMutableArray *items = [NSMutableArray array];
-    for (NSString *item in GLAvailableTabBarItems()) {
+    for (NSString *item in self.tabBarOrder) {
         if ([stored containsObject:item] && items.count < 5) [items addObject:item];
     }
     return items.count ? items : GLDefaultTabBarItems();
@@ -106,11 +109,32 @@ static NSArray *GLDefaultTabBarItems(void) {
 
 - (void)setTabBarItems:(NSArray *)tabBarItems {
     NSMutableArray *safe = [NSMutableArray array];
-    for (NSString *item in GLAvailableTabBarItems()) {
+    for (NSString *item in self.tabBarOrder) {
         if ([tabBarItems containsObject:item] && safe.count < 5) [safe addObject:item];
     }
     if (!safe.count) safe = [GLDefaultTabBarItems() mutableCopy];
     [self setValue:safe forSetting:GLTabBarItemsKey];
+}
+
+- (NSArray *)tabBarOrder {
+    NSArray *stored = [[NSUserDefaults standardUserDefaults] arrayForKey:GLTabBarOrderKey];
+    NSMutableArray *order = [NSMutableArray array];
+    for (id item in stored) {
+        if ([item isKindOfClass:[NSString class]] && [GLAvailableTabBarItems() containsObject:item] &&
+            ![order containsObject:item]) [order addObject:item];
+    }
+    for (NSString *item in GLAvailableTabBarItems()) if (![order containsObject:item]) [order addObject:item];
+    return order;
+}
+
+- (void)setTabBarOrder:(NSArray *)tabBarOrder {
+    NSMutableArray *order = [NSMutableArray array];
+    for (id item in tabBarOrder) {
+        if ([item isKindOfClass:[NSString class]] && [GLAvailableTabBarItems() containsObject:item] &&
+            ![order containsObject:item]) [order addObject:item];
+    }
+    for (NSString *item in GLAvailableTabBarItems()) if (![order containsObject:item]) [order addObject:item];
+    [self setValue:order forSetting:GLTabBarOrderKey];
 }
 
 @end

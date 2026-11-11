@@ -76,8 +76,8 @@ goes into the next with no gap.
 
 ## Features
 
-- A customizable bottom bar with up to five of Artists, Albums, Songs, Folders,
-  Playlists, and Search
+- A customizable, reorderable bottom bar with up to five of Artists, Albums,
+  Songs, Folders, Playlists, and Search
 - A top-bar More page for unselected library destinations, Upload, and Settings
 - A grid of the album art, and a page for each album
 - Search across songs, artists, and albums, plus a search box on each list and

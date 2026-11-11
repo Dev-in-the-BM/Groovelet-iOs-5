@@ -52,12 +52,15 @@ selected folders under Media -> scan -> tag reader -> SQLite index -> lists
 
 ## Navigation
 
-`GLSettings.tabBarItems` stores up to five identifiers from Artists, Albums,
-Songs, Folders, Playlists, and Search. `GLAppDelegate` builds the tab bar from
-that preference while reusing navigation stacks for destinations that remain
-visible. Omitted destinations stay accessible through the top-right More
-button. Its pushed list contains omitted library destinations, Upload, and
-Settings; the global Search screen filters tracks by title, artist, or album.
+`GLSettings.tabBarOrder` stores the owner's order for Artists, Albums, Songs,
+Folders, Playlists, and Search. `GLSettings.tabBarItems` stores up to five of
+those identifiers, in that order. The Tab Bar settings list uses UIKit's row
+reordering controls and checkmarks; tab rebuilding is deferred until leaving
+Settings so changing a checkmark does not navigate away from the list.
+`GLAppDelegate` reuses navigation stacks for destinations that remain visible.
+Omitted destinations stay accessible through the top-right More button. Its
+pushed list contains omitted library destinations, Upload, and Settings; the
+global Search screen filters tracks by title, artist, or album.
 
 ## Files
 

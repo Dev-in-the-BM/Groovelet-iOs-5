@@ -16,6 +16,7 @@ Upload, and Settings reachable from a top-bar More page. Preserve the existing
 Acceptance: selecting or deselecting roots updates the library safely; browsing
 never exposes directories outside selected roots; playback resolves files from
 all selected roots; tab-bar selection persists and stays within iOS's five-item
-limit; unselected destinations remain available from More; the Folders and
-Search tabs have generated PNG icons; iOS 5.1 compatibility and existing
-library data are kept.
+limit; tab destinations can be reordered; selecting a destination in Settings
+only toggles its checkmark and does not navigate away; unselected destinations
+remain available from More; the Folders and Search tabs have generated PNG
+icons; iOS 5.1 compatibility and existing library data are kept.

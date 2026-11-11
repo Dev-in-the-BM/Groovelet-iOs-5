@@ -10,6 +10,8 @@ typedef NS_ENUM(NSInteger, GLReplayGainMode) {
 
 // Posted when a setting changes.
 extern NSString *const GLSettingsDidChangeNotification;
+// Posted when the tab-bar configuration screen is no longer visible.
+extern NSString *const GLTabBarSettingsDidCloseNotification;
 
 @interface GLSettings : NSObject
 
@@ -21,9 +23,11 @@ extern NSString *const GLSettingsDidChangeNotification;
 @property (nonatomic) GLReplayGainMode replayGainMode;
 // Relative folder paths under /var/mobile/Media that the scanner may index.
 @property (nonatomic, copy) NSArray *musicFolders;
-// Library destinations shown in the bottom bar, in the app's fixed display order.
+// Library destinations shown in the bottom bar, in the owner's chosen order.
 // iOS supports at most five direct tab items.
 @property (nonatomic, copy) NSArray *tabBarItems;
+// All available destinations in the order shown in Tab Bar settings.
+@property (nonatomic, copy) NSArray *tabBarOrder;
 
 + (NSArray *)availableTabBarItems;
 + (NSArray *)defaultTabBarItems;

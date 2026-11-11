@@ -52,7 +52,7 @@ The iPod connected over USB. Wi-Fi SSH alias `iphone4s` did not work. A USB SSH 
 
 ## Remaining checks
 
-Opening the app is verified. Do not claim the other features work on iOS 5.1 until they have been tested on the device. Test playback, background audio, route changes, lock-screen controls, library scanning, and upload. Selected folders were committed in `2710cf3`, the visible-tab adjustment in `fba6cbc`, and the folder icon/docs in `d4548f3`. Configurable tab navigation is the current uncommitted work.
+Opening the prior app build was verified. During configurable-tab deployment, the old bundle was removed before the replacement copy completed; the latest bundle has now been restored, signed, and registered over USB. The device has no `open` command, so the owner must launch it from SpringBoard. Core tests passed on the iPod (106 tests). The latest bottom-bar selector now keeps checkmark changes in place, supports drag reordering, and defers rebuilding tabs until leaving Settings. These new interactions and playback, background audio, route changes, lock-screen controls, library scanning, and upload still need hands-on verification. Selected folders were committed in `2710cf3`, the visible-tab adjustment in `fba6cbc`, folder icon/docs in `d4548f3`, and configurable tabs in `7b0b413`.
 
 ## Active task: selected Media music folders
 
@@ -61,7 +61,7 @@ Opening the app is verified. Do not claim the other features work on iOS 5.1 unt
 - Implemented Settings folder selection, scoped scanning, a dedicated Folders tab, Media-relative playback paths, schema-v4 migration for old library/playlist paths, and preservation of the `Groovelet` import/upload destination.
 - `scripts/app.sh` builds successfully for armv7/iOS 5.1 using the documented linker tools. The core test executable also compiles for armv7. `scripts/test.sh` cannot execute on this Linux host because its Mac test target requires the macOS Objective-C runtime and frameworks. The latest configurable-navigation app was installed over USB, signed on-device, and registered with `uicache`. The iPod's `open` command is unavailable; launch from its SpringBoard icon. Navigation behavior and runtime tests remain unverified on-device.
 - A scan treats Settings' selected roots as the full library: removing a root removes its tracks from the index; selecting no roots leaves the library empty.
-- Settings persists up to five visible tab identifiers from Artists, Albums, Songs, Folders, Playlists, and Search. The default is Artists, Albums, Songs, Folders, Playlists. Hidden destinations remain reachable from More.
+- Settings persists an order for Artists, Albums, Songs, Folders, Playlists, and Search plus up to five visible destinations. The default is Artists, Albums, Songs, Folders, Playlists. Hidden destinations remain reachable from More. The settings list exposes drag handles and checkmarks; apply tab-bar changes after leaving Settings to keep the editor on screen.
 - More is a top-right navigation-bar button, not a tab. Its pushed page lists hidden library destinations, Upload, and Settings.
 - Search reuses the Songs list and matches song titles, artists, and albums, with its search field revealed immediately.
 - Folders and Search use source SVGs in `assets/tabs/`, rendered to 30px/60px PNGs by `scripts/icons.sh`; iOS loads the PNG assets.

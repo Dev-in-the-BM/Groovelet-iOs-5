@@ -44,7 +44,7 @@
 
 - (void)settingsChanged {
     NSMutableArray *hidden = [NSMutableArray array];
-    for (NSString *item in [GLSettings availableTabBarItems]) {
+    for (NSString *item in [GLSettings shared].tabBarOrder) {
         if (![[GLSettings shared].tabBarItems containsObject:item]) [hidden addObject:item];
     }
     self.hiddenTabs = hidden;
