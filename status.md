@@ -6,6 +6,8 @@
 `/var/mobile/Media`; scanning is limited to those roots, and the Folders tab
 browses/plays only their contents. Imports and Wi-Fi uploads remain in
 `Media/Groovelet`. The app and core-test executable compile for armv7/iOS 5.1.
+The visible tabs are Artists, Albums, Songs, Folders, and More; More contains
+Playlists, Upload, and Settings.
 The updated app has been copied to `/Applications/Groovelet.app`, signed on the
 iPod, and registered with `uicache`. The device has no `open` command, so launch
 it by tapping its SpringBoard icon. Updated UI/library behavior is not yet

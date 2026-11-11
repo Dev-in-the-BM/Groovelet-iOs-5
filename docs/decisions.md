@@ -243,9 +243,9 @@ lyrics, and scrobbling.
 - **The colors:** the accent is coral `#FF6B4A`, and the background is
   `#111111`. They are different from the green of Spotify and the red of
   Apple Music.
-- **Six destinations:** Artists, Albums, Songs, Playlists, Folders, and More.
-  The Folders tab browses only selected music roots; More holds Upload and
-  Settings (and appears in the system overflow on compact tab bars).
+- **Five visible destinations:** Artists, Albums, Songs, Folders, and More.
+  Folders gets one of the four direct-content slots so it is not hidden by
+  UIKit's overflow. More contains Playlists, Upload, and Settings.
 - **A mini player** sits above the tab bar. A tap on it opens the full
   now-playing screen.
 - **Each list has a search box** at the top.

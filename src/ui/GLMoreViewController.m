@@ -1,4 +1,5 @@
 #import "GLMoreViewController.h"
+#import "GLPlaylistsViewController.h"
 #import "GLSettings.h"
 #import "GLSettingsViewController.h"
 #import "GLTheme.h"
@@ -34,6 +35,7 @@
 
 - (void)reload {
     NSMutableArray *rows = [NSMutableArray array];
+    [rows addObject:@"playlists"];
     [rows addObject:@"upload"];
     [rows addObject:@"settings"];
     self.rows = rows;
@@ -54,7 +56,7 @@
         cell.textLabel.backgroundColor = [UIColor clearColor];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
-    NSDictionary *titles = @{ @"upload": @"Upload over Wi-Fi", @"settings": @"Settings" };
+    NSDictionary *titles = @{ @"playlists": @"Playlists", @"upload": @"Upload over Wi-Fi", @"settings": @"Settings" };
     cell.textLabel.text = titles[self.rows[indexPath.row]];
     return cell;
 }
@@ -66,6 +68,7 @@
 
 - (void)openScreen:(NSString *)name {
     UIViewController *screen = nil;
+    if ([name isEqualToString:@"playlists"]) screen = [GLPlaylistsViewController new];
     if ([name isEqualToString:@"settings"]) screen = [GLSettingsViewController new];
     if ([name isEqualToString:@"upload"]) screen = [GLUploadViewController new];
     if (screen) [self.navigationController pushViewController:screen animated:YES];

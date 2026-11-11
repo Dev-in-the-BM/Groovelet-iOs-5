@@ -42,7 +42,7 @@
     self.more = [GLMoreViewController new];
     self.tabs = [GLTabBarController new];
     NSArray *roots = @[ [GLArtistsViewController new], [GLAlbumsViewController new], [GLSongsViewController new],
-                        [GLPlaylistsViewController new], [[GLFoldersViewController alloc] initWithFolder:@""], self.more ];
+                        [[GLFoldersViewController alloc] initWithFolder:@""], self.more ];
     NSMutableArray *navigations = [NSMutableArray array];
     for (UIViewController *root in roots) {
         [navigations addObject:[[GLNavigationController alloc] initWithRootViewController:root]];
@@ -125,7 +125,7 @@
 // Opens a tab, a screen of More, or the album of a track.
 - (void)openScreen:(NSString *)name path:(NSString *)path {
     [self.tabs dismissViewControllerAnimated:NO completion:nil];
-    NSArray *tabs = @[ @"artists", @"albums", @"songs", @"playlists", @"folders", @"more" ];
+    NSArray *tabs = @[ @"artists", @"albums", @"songs", @"folders", @"more" ];
     NSUInteger tab = [tabs indexOfObject:name];
     if (tab != NSNotFound) {
         self.tabs.selectedIndex = tab;
@@ -140,8 +140,8 @@
         [self.tabs showQueue];
         return;
     }
-    if ([@[ @"upload", @"settings" ] containsObject:name]) {
-        self.tabs.selectedIndex = 5;
+    if ([@[ @"playlists", @"upload", @"settings" ] containsObject:name]) {
+        self.tabs.selectedIndex = 4;
         [self.more.navigationController popToRootViewControllerAnimated:NO];
         [self.more openScreen:name];
         return;
@@ -151,9 +151,10 @@
         playlist.kind = GLPlaylistFile;
         playlist.path = path;
         playlist.name = path.lastPathComponent.stringByDeletingPathExtension;
-        self.tabs.selectedIndex = 3;
+        self.tabs.selectedIndex = 4;
         UINavigationController *navigation = (UINavigationController *)self.tabs.selectedViewController;
         [navigation popToRootViewControllerAnimated:NO];
+        [self.more openScreen:@"playlists"];
         [navigation pushViewController:[[GLPlaylistViewController alloc] initWithPlaylist:playlist] animated:NO];
         return;
     }
