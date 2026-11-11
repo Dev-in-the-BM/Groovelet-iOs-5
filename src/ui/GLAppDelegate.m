@@ -140,8 +140,13 @@
         UINavigationController *navigation = self.tabNavigations[item];
         if (!navigation) {
             UIViewController *root = [self controllerForTab:item];
-            root.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"More"
+            UIBarButtonItem *more = [[UIBarButtonItem alloc] initWithTitle:@"More"
                 style:UIBarButtonItemStyleBordered target:self action:@selector(showMore)];
+            if ([root isKindOfClass:[GLSongsViewController class]]) {
+                root.navigationItem.rightBarButtonItems = @[ more, [(GLSongsViewController *)root shuffleButtonItem] ];
+            } else {
+                root.navigationItem.rightBarButtonItem = more;
+            }
             navigation = [[GLNavigationController alloc] initWithRootViewController:root];
         }
         navigationsByItem[item] = navigation;

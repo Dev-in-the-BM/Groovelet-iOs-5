@@ -78,7 +78,8 @@ goes into the next with no gap.
 
 - A customizable, reorderable bottom bar with up to five of Artists, Albums,
   Songs, Folders, Playlists, and Search
-- A top-bar More page for unselected library destinations, Upload, and Settings
+- A top-bar More page for unselected library destinations, Upload, and Settings;
+  Songs also has a Shuffle action beside More
 - A grid of the album art, and a page for each album
 - Search across songs, artists, and albums, plus a search box on each list and
   an index of letters
@@ -145,14 +146,25 @@ An M3U or M3U8 file in the music directory shows as a playlist.
 
 ## Build
 
-You need a Mac with Xcode and the iOS 9.3 SDK of Theos.
+This iOS 5.1 branch builds on Linux with Clang and cctools-port, and targets
+armv7 using the iOS 9.3 SDK. The full reproducible setup and USB install steps
+are in [`docs/ios-5.1-backport.md`](docs/ios-5.1-backport.md).
 
-1. Download `iPhoneOS9.3.sdk.tar.xz` from the releases of
-   [theos/sdks](https://github.com/theos/sdks/releases) and unpack it into
-   `sdks/`. The result is `sdks/iPhoneOS9.3.sdk`. Git does not track `sdks/`.
-2. Run `./fix-sdk.sh` one time. It changes the SDK stubs for the new Apple
-   linker and for iOS 6.
-3. Build:
+Download `iPhoneOS9.3.sdk.tar.xz` from
+[theos/sdks](https://github.com/theos/sdks/releases), unpack it into
+`sdks/iPhoneOS9.3.sdk`, and run `./fix-sdk.sh`. Neither the SDK nor generated
+toolchain binaries are tracked by Git. On Linux, build the pinned linker once
+with `scripts/toolchain.sh`, then build with:
+
+```sh
+TOOLCHAIN="$PWD/build/apple-toolchain/bin"
+export IOS_LD="$TOOLCHAIN/x86_64-apple-darwin13.4.0-ld"
+export IOS_AR="$TOOLCHAIN/x86_64-apple-darwin13.4.0-ar"
+export IOS_RANLIB="$TOOLCHAIN/x86_64-apple-darwin13.4.0-ranlib"
+scripts/app.sh
+```
+
+Available commands:
 
 | Command | Result |
 | ------- | ------ |
@@ -160,15 +172,19 @@ You need a Mac with Xcode and the iOS 9.3 SDK of Theos.
 | `scripts/deb.sh` | The Cydia package in `build/` |
 | `scripts/test.sh` | The tests, on the Mac |
 | `scripts/test.sh --phone` | The tests, on the phone, also the audio tests |
-| `scripts/install.sh` | Builds the app, copies it to the phone, and opens it |
+| `scripts/install.sh` | Builds, copies, signs, and registers the app. Set `IOS_DEVICE=ipod` to use the USB SSH tunnel; tap the SpringBoard icon to launch. |
 | `scripts/install.sh --debug` | The same, with the debug links of `src/ui/GLDebug.h` |
+| `scripts/toolchain.sh` | Builds the pinned cctools-port tools into `build/apple-toolchain/` |
 | `scripts/ffmpeg.sh` | The audio decoders of FFmpeg for the phone |
 | `scripts/samples.sh` | Sample music in each format, copied to the phone |
 | `scripts/bigsamples.py` | A library of many short files, to measure the speed |
 | `scripts/icons.sh` | The icon, the launch images, and the tab icons |
 
-The phone scripts use `ssh iphone4s`. Set up that host in `~/.ssh/config`,
-for example with a USB tunnel of `iproxy` on port 2222.
+The installer defaults to the SSH alias `iphone4s`; override it with
+`IOS_DEVICE=ipod`. For the tested USB setup, use `idevice_id -l`, start
+`iproxy 2222 22 -u DEVICE_UDID`, and configure the `ipod` SSH alias as
+`root@127.0.0.1:2222`. See the backport guide for exact steps. The old device
+has no `open` command, so the installer does not attempt to launch the app.
 
 `build.sh` builds one armv7 binary. It compiles with ARC and links without
 ARC, and all code is in ARM mode (`-marm`). The new Apple linker makes Thumb

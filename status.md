@@ -1,30 +1,33 @@
 # Current status
 
-**State: Groovelet is installed on the iPod touch 3,1 running iOS 5.1.1.** The configurable-tab app bundle was restored after an interrupted deployment and registered over USB; the owner still needs to tap the SpringBoard icon to confirm this build launches.
+**Device:** Groovelet is installed on the iPod touch 3,1 (iOS 5.1.1, armv7).
+The latest app was rebuilt, copied over USB, signed with on-device `ldid`, and
+registered with `uicache` on 2026-11-11. Launch it by tapping the SpringBoard
+icon; this iOS version has no `open` command. The latest installation has not
+yet been manually launched or touch-tested.
 
-**Feature implementation:** Settings selects disjoint roots under
-`/var/mobile/Media`; scanning is limited to those roots, and Folders browses
-and plays only their contents. Imports and Wi-Fi uploads remain in
-`Media/Groovelet`. Settings also chooses up to five bottom-bar destinations
-from Artists, Albums, Songs, Folders, Playlists, and Search. The default shows
-all except Search; unselected destinations remain in the top-bar More page,
-along with Upload and Settings. Search matches song, artist, and album text.
-Folders and Search have tab icons sourced as SVG and bundled as 30px/60px PNGs.
-The updated app and core-test executable compile for armv7/iOS 5.1.
-The latest configurable-tab build has been copied to `/Applications/Groovelet.app`,
-signed on the iPod, and registered with `uicache`. The app bundle had been absent
-after an interrupted copy and has now been restored. The device has no `open`
-command, so launch it by tapping its SpringBoard icon. Core tests passed on the
-iPod (106 tests); UI behavior still needs a touch check.
+**Latest feature:** Songs has a Shuffle button next to More in the top
+navigation bar. It shuffles the full library, not only the current search
+results. The app build and USB install completed; verify the side-by-side
+layout and playback by touch on-device.
 
-- Build target: armv7, minimum iOS 5.1, using the iOS 9.3 SDK.
-- App: `build/Groovelet.app/Groovelet`.
-- Package: `build/io.github.stivengjekaj.groovelet_1.0.2_iphoneos-arm.deb`.
-- Verification: executable is Mach-O armv7; load command sets minimum iOS 5.1; FFmpeg symbols link into the app; package depends on firmware 5.1 or later.
-- Device install: app was signed on-device with `ldid` and registered with `uicache` as mobile.
-- Not verified: tab-selection and reorder interactions, audio playback, background audio, route changes, lock-screen controls, library scan, and upload.
-- The bottom-bar selector toggles checkmarks in place, supports drag reordering,
-  and applies tab-bar changes after leaving Settings. Core tests pass; the new
-  selector and reorder interactions still need a touch check.
+**Implemented library behavior:** Settings chooses music roots under
+`/var/mobile/Media`; scans and Folders are scoped to those roots. Imports and
+Wi-Fi uploads remain in `Media/Groovelet`. Settings can show up to five
+reorderable destinations among Artists, Albums, Songs, Folders, Playlists, and
+Search. Hidden destinations remain under More.
 
-See [`claude.progress.md`](claude.progress.md) for build setup, technical fixes, and test history. See [`goals.md`](goals.md) for acceptance goals.
+- App executable: `build/Groovelet.app/Groovelet` (Mach-O armv7, minimum iOS
+  5.1).
+- SDK: `sdks/iPhoneOS9.3.sdk` (not tracked by Git; run `fix-sdk.sh` after
+  restoring it).
+- Rebuild toolchain: `scripts/toolchain.sh`, pinned cctools-port, outputs in
+  `build/apple-toolchain/bin/`.
+- Build/install details and the known recovery steps:
+  [`docs/ios-5.1-backport.md`](docs/ios-5.1-backport.md).
+- Core tests previously passed on the iPod (106 tests). The new navigation
+  controls, shuffle playback, and the remaining audio/library/upload flows
+  still need hands-on verification.
+
+See [`claude.progress.md`](claude.progress.md) for historical compatibility
+work and [`goals.md`](goals.md) for acceptance goals.

@@ -3,4 +3,5 @@
 #import "GLListViewController.h"
 
 @interface GLSongsViewController : GLListViewController
+- (UIBarButtonItem *)shuffleButtonItem;
 @end

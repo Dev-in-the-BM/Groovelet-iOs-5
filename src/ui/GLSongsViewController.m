@@ -14,11 +14,9 @@
     return self;
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    self.navigationItem.rightBarButtonItem =
-        [[UIBarButtonItem alloc] initWithTitle:@"Shuffle" style:UIBarButtonItemStylePlain target:self
-                                        action:@selector(shuffleAll)];
+- (UIBarButtonItem *)shuffleButtonItem {
+    return [[UIBarButtonItem alloc] initWithTitle:@"Shuffle" style:UIBarButtonItemStylePlain target:self
+                                           action:@selector(shuffleAll)];
 }
 
 - (void)shuffleAll {

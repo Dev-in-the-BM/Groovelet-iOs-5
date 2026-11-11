@@ -252,6 +252,9 @@ lyrics, and scrobbling.
   list of unselected library destinations, Upload, and Settings. This keeps
   every chosen destination in the iOS tab bar without invoking UIKit's tab
   overflow.
+- **Songs keeps both top-bar actions.** Shuffle sits beside More on the Songs
+  root and starts shuffled playback of the complete library; other tab roots
+  keep More on its own.
 - **The Folders and Search tab icons** follow the tab artwork pipeline:
   `assets/tabs/*.svg` is source artwork, and `scripts/icons.sh` renders 30px and
   60px PNGs because iOS loads the PNG assets, not SVG files.

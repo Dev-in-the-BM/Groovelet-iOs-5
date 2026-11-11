@@ -60,7 +60,9 @@ Settings so changing a checkmark does not navigate away from the list.
 `GLAppDelegate` reuses navigation stacks for destinations that remain visible.
 Omitted destinations stay accessible through the top-right More button. Its
 pushed list contains omitted library destinations, Upload, and Settings; the
-global Search screen filters tracks by title, artist, or album.
+global Search screen filters tracks by title, artist, or album. The Songs root
+adds a Shuffle action alongside More in the right navigation items; it starts
+shuffled playback of all library tracks, independent of the active search.
 
 ## Files
 
@@ -84,7 +86,7 @@ src/ui/        the screens and the playback controller
 src/ffmpeg/    a compiler builtin that FFmpeg needs on iOS 6
 tests/         the tests of src/core and src/audio
 probe/         tools that run on the phone: screenshot, CPU, and library speed
-scripts/       build, test, install, package, and sample music
+scripts/       build, test, install, package, toolchain, and sample music
 resources/     Info.plist, the icons, the launch images, the tab icons, the font
 packaging/     the files of the Cydia package
 ```
