@@ -30,12 +30,18 @@ file -> decoder -> gain -> renderer -> AudioQueue -> speaker, headphones, or Air
 ## The library
 
 ```
-music directory -> scan -> tag reader -> SQLite index -> lists
+selected folders under Media -> scan -> tag reader -> SQLite index -> lists
 ```
 
-1. **Scan.** `GLScanner` walks `Media/Groovelet`. It compares the size and
-   the time of each file with the index, and reads only the new and the
-   changed files.
+1. **Scan.** `GLScanner` walks only the folders selected in Settings under
+   `/var/mobile/Media`. Track paths are relative to `Media`; the default root
+   is `Groovelet`. It compares file size and modification time, and reads only
+   new and changed files. Import and Wi-Fi upload still write to
+   `Media/Groovelet`.
+   Schema migration 4 moves existing indexed paths under the `Groovelet/`
+   prefix so old tracks, playlists, and saved queues continue to resolve.
+   A scan treats the chosen roots as the whole library: deselected roots are
+   removed from the index, and an empty selection indexes no music.
 2. **Tags.** `GLTags` reads ID3v2, ID3v1, MP4, Vorbis comments, APEv2, and the
    chunks of WAV and AIFF. It skips the bytes of a picture during a scan.
 3. **Index.** `GLLibrary` keeps one row for each file, the playlists, and the

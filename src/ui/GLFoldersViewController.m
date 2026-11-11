@@ -5,6 +5,7 @@
 #import "GLLog.h"
 #import "GLPaths.h"
 #import "GLPlayback.h"
+#import "GLSettings.h"
 
 @interface GLFoldersViewController ()
 @property (nonatomic, copy) NSString *folder;
@@ -17,11 +18,14 @@
     if ((self = [super init])) {
         _folder = [folder copy];
         self.title = folder.length ? folder.lastPathComponent : @"Folders";
+        if (!folder.length) self.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Folders" image:nil tag:0];
     }
     return self;
 }
 
 - (NSArray *)loadItems {
+    if (!self.folder.length) return [[GLSettings shared].musicFolders
+                                      sortedArrayUsingSelector:@selector(localizedStandardCompare:)];
     GLFolderContent *content = [[GLLibrary shared] contentOfFolder:self.folder];
     self.tracks = content.tracks;
     return [content.folders arrayByAddingObjectsFromArray:content.tracks];
@@ -58,7 +62,7 @@
 }
 
 - (NSString *)emptyText {
-    return @"This folder holds no music.";
+    return self.folder.length ? @"This folder holds no music." : @"Choose music folders in Settings.";
 }
 
 - (NSString *)pathOfFolder:(NSString *)name {
@@ -87,7 +91,7 @@
         return;
     }
     NSString *folder = [self pathOfFolder:item];
-    if (!GLDeleteFolder(folder, GLMusicDirectory())) return;
+    if (!GLDeleteFolder(folder, GLMediaDirectory())) return;
     NSArray *removed = [[GLLibrary shared] removeFolder:folder];
     GLLog(@"deleted the folder %@ with %lu files", folder, (unsigned long)removed.count);
     [[GLPlayback shared] forgetPaths:removed];

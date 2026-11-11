@@ -3,6 +3,7 @@
 #import "GLDecoders.h"
 #import "GLLog.h"
 #import "GLPaths.h"
+#import "GLSettings.h"
 
 NSString *const GLScanDidStartNotification = @"GLScanDidStart";
 NSString *const GLScanDidEndNotification = @"GLScanDidEnd";
@@ -53,9 +54,10 @@ NSString *const GLScanDidEndNotification = @"GLScanDidEnd";
     self.readAll = NO;
     [[NSNotificationCenter defaultCenter] postNotificationName:GLScanDidStartNotification object:self];
     dispatch_async(self.queue, ^{
-        GLScanner *scanner = [[GLScanner alloc] initWithLibrary:[GLLibrary shared] directory:GLMusicDirectory()
+        GLScanner *scanner = [[GLScanner alloc] initWithLibrary:[GLLibrary shared] directory:GLMediaDirectory()
             isAudio:^BOOL(NSString *path) { return GLIsAudioPath(path); }
             duration:^double(NSString *path) { return GLOpenDecoder(path, NULL).duration; }];
+        scanner.includedDirectories = [GLSettings shared].musicFolders;
         scanner.readAll = readAll;
         scanner.isPlaylist = ^BOOL(NSString *path) {
             NSString *extension = path.pathExtension.lowercaseString;

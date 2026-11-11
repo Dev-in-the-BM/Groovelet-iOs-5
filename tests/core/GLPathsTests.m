@@ -6,10 +6,10 @@
 GL_TEST(test_paths_change_between_relative_and_absolute) {
     GLSetRootDirectory(GLTestTemporaryDirectory());
     NSString *full = GLAbsolutePath(@"Music/a.mp3");
-    GL_EXPECT([full hasPrefix:GLMusicDirectory()]);
+    GL_EXPECT([full hasPrefix:GLMediaDirectory()]);
     GL_EQUAL(GLRelativePath(full), @"Music/a.mp3");
     GL_EXPECT(GLRelativePath(@"/etc/hosts") == nil);
-    GL_EXPECT(GLRelativePath(GLMusicDirectory()) == nil);
+    GL_EQUAL(GLRelativePath(GLMusicDirectory()), @"Groovelet");
     GLSetRootDirectory(nil);
 }
 

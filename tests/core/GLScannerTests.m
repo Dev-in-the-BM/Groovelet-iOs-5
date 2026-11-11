@@ -103,3 +103,16 @@ GL_TEST(test_scanner_reads_all_files_again_when_asked) {
     GL_EQUAL_INT(probes, 2);
     GL_EQUAL_INT(result.changed, 2);
 }
+
+GL_TEST(test_scanner_indexes_only_the_selected_root) {
+    NSString *media = GLTestTemporaryDirectory();
+    GLWriteSong(media, @"One/a.mp3", @"A");
+    GLWriteSong(media, @"Two/b.mp3", @"B");
+    GLLibrary *library = [[GLLibrary alloc] initWithPath:[GLTestTemporaryDirectory() stringByAppendingPathComponent:@"l"]];
+    GLScanner *scanner = GLNewScanner(library, media, NULL);
+    scanner.includedDirectories = @[ @"One" ];
+    GLScanResult *result = [scanner scan];
+    GL_EQUAL_INT(result.added, 1);
+    GL_EQUAL_INT([[library allTracks] count], 1);
+    GL_EQUAL([[library allTracks].firstObject path], @"One/a.mp3");
+}

@@ -222,7 +222,7 @@
 }
 
 - (void)deleteItem:(id)item tracks:(NSArray *)tracks {
-    NSArray *deleted = GLDeleteFiles([tracks valueForKey:@"path"], GLMusicDirectory());
+    NSArray *deleted = GLDeleteFiles([tracks valueForKey:@"path"], GLMediaDirectory());
     GLLog(@"deleted %lu files", (unsigned long)deleted.count);
     [[GLPlayback shared] forgetPaths:deleted];
     [[GLLibrary shared] removePaths:deleted];

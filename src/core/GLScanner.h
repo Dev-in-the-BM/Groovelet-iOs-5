@@ -29,6 +29,8 @@
 // Tells which files are playlists. The scan gives their paths to the library.
 // nil keeps the list of playlists as it is.
 @property (nonatomic, copy) BOOL (^isPlaylist)(NSString *path);
+// When set, scan only these directory paths relative to `directory`.
+@property (nonatomic, copy) NSArray *includedDirectories;
 
 // With YES, the scan reads each file again, also when its size and its time
 // did not change. A new version of the app can read more from a file.

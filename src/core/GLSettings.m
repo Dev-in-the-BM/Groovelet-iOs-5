@@ -3,8 +3,8 @@
 NSString *const GLSettingsDidChangeNotification = @"GLSettingsDidChange";
 
 static NSString *const GLIgnoreArticlesKey = @"ignoreArticles";
-static NSString *const GLShowFoldersKey = @"showFolders";
 static NSString *const GLReplayGainKey = @"replayGainMode";
+static NSString *const GLMusicFoldersKey = @"musicFolders";
 
 @implementation GLSettings
 
@@ -14,7 +14,8 @@ static NSString *const GLReplayGainKey = @"replayGainMode";
     dispatch_once(&once, ^{
         shared = [GLSettings new];
         [[NSUserDefaults standardUserDefaults] registerDefaults:@{
-            GLIgnoreArticlesKey: @YES, GLShowFoldersKey: @YES, GLReplayGainKey: @(GLReplayGainTrack),
+            GLIgnoreArticlesKey: @YES, GLReplayGainKey: @(GLReplayGainTrack),
+            GLMusicFoldersKey: @[ @"Groovelet" ],
         }];
     });
     return shared;
@@ -34,14 +35,6 @@ static NSString *const GLReplayGainKey = @"replayGainMode";
     [self setValue:@(ignoreArticles) forSetting:GLIgnoreArticlesKey];
 }
 
-- (BOOL)showFolders {
-    return [[NSUserDefaults standardUserDefaults] boolForKey:GLShowFoldersKey];
-}
-
-- (void)setShowFolders:(BOOL)showFolders {
-    [self setValue:@(showFolders) forSetting:GLShowFoldersKey];
-}
-
 - (GLReplayGainMode)replayGainMode {
     NSInteger mode = [[NSUserDefaults standardUserDefaults] integerForKey:GLReplayGainKey];
     return mode >= GLReplayGainOff && mode <= GLReplayGainAlbum ? (GLReplayGainMode)mode : GLReplayGainTrack;
@@ -49,6 +42,36 @@ static NSString *const GLReplayGainKey = @"replayGainMode";
 
 - (void)setReplayGainMode:(GLReplayGainMode)replayGainMode {
     [self setValue:@(replayGainMode) forSetting:GLReplayGainKey];
+}
+
+- (NSArray *)musicFolders {
+    NSArray *folders = [[NSUserDefaults standardUserDefaults] arrayForKey:GLMusicFoldersKey];
+    return folders ?: @[ @"Groovelet" ];
+}
+
+- (void)setMusicFolders:(NSArray *)musicFolders {
+    NSMutableArray *safe = [NSMutableArray array];
+    for (NSString *folder in musicFolders) {
+        if (![folder isKindOfClass:[NSString class]]) continue;
+        NSString *path = folder.stringByStandardizingPath;
+        if (!path.length || [path isEqualToString:@"."] || [path hasPrefix:@"/"] ||
+            [path isEqualToString:@".."] || [path hasPrefix:@"../"] ||
+            [path rangeOfString:@"/../"].location != NSNotFound ||
+            [path hasSuffix:@"/.."] || [safe containsObject:path]) continue;
+        [safe addObject:path];
+    }
+    NSArray *ordered = [safe sortedArrayUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
+        if (a.length < b.length) return NSOrderedAscending;
+        if (a.length > b.length) return NSOrderedDescending;
+        return [a compare:b];
+    }];
+    NSMutableArray *roots = [NSMutableArray array];
+    for (NSString *candidate in ordered) {
+        BOOL covered = NO;
+        for (NSString *root in roots) if ([candidate hasPrefix:[root stringByAppendingString:@"/"]]) { covered = YES; break; }
+        if (!covered) [roots addObject:candidate];
+    }
+    [self setValue:roots forSetting:GLMusicFoldersKey];
 }
 
 @end

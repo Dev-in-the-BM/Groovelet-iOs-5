@@ -34,19 +34,29 @@
     NSMutableSet *changedAlbums = [NSMutableSet set];
     NSMutableArray *playlists = [NSMutableArray array];
     NSFileManager *files = [NSFileManager new];
-    NSDirectoryEnumerator *walk = [files enumeratorAtURL:[NSURL fileURLWithPath:self.directory]
-                              includingPropertiesForKeys:@[ NSURLFileSizeKey, NSURLContentModificationDateKey,
-                                                            NSURLIsDirectoryKey ]
-                                                 options:NSDirectoryEnumerationSkipsHiddenFiles
-                                            errorHandler:nil];
     NSString *root = [self.directory.stringByStandardizingPath stringByAppendingString:@"/"];
-    for (NSURL *url in walk) {
+    NSArray *directories = self.includedDirectories ?: @[ @"" ];
+    for (NSString *directory in directories) {
+      NSString *scanPath = directory.length ? [self.directory stringByAppendingPathComponent:directory] : self.directory;
+      NSDirectoryEnumerator *walk = [files enumeratorAtURL:[NSURL fileURLWithPath:scanPath]
+                                includingPropertiesForKeys:@[ NSURLFileSizeKey, NSURLContentModificationDateKey,
+                                                              NSURLIsDirectoryKey ]
+                                                   options:NSDirectoryEnumerationSkipsHiddenFiles
+                                              errorHandler:nil];
+      for (NSURL *url in walk) {
         @autoreleasepool {
             NSNumber *isDirectory = nil;
             [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:NULL];
             NSString *full = url.path.stringByStandardizingPath;
             if (isDirectory.boolValue || ![full hasPrefix:root]) continue;
             NSString *path = [full substringFromIndex:root.length];
+            if (self.includedDirectories) {
+                BOOL included = NO;
+                for (NSString *folder in self.includedDirectories) {
+                    if ([path hasPrefix:[folder stringByAppendingString:@"/"]]) { included = YES; break; }
+                }
+                if (!included) continue;
+            }
             if (self.isPlaylist && self.isPlaylist(full)) {
                 [playlists addObject:path];
                 continue;
@@ -84,6 +94,7 @@
                 [self.library postChange];
             }
         }
+      }
     }
     [self.library saveTracks:batch];
     // The rows that no file matched are gone.

@@ -1,5 +1,5 @@
 // One audio file and the facts that the app knows about it.
-// The path is relative to the music directory, so that the index stays
+// The path is relative to Media, so that the index stays
 // correct when the directory moves.
 
 #import <Foundation/Foundation.h>
@@ -14,7 +14,7 @@ extern NSString *const GLUnknownArtist;
 @interface GLTrack : NSObject
 
 @property (nonatomic) int64_t trackID;      // The row in the library, or 0
-@property (nonatomic, copy) NSString *path;  // Relative to the music directory
+@property (nonatomic, copy) NSString *path;  // Relative to Media
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *artist;
 @property (nonatomic, copy) NSString *album;

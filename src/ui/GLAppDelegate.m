@@ -3,6 +3,7 @@
 #import "GLAlbumsViewController.h"
 #import "GLArtistsViewController.h"
 #import "GLDebug.h"
+#import "GLFoldersViewController.h"
 #import "GLDecoders.h"
 #import "GLImport.h"
 #import "GLLibrary.h"
@@ -23,6 +24,7 @@
 @interface GLAppDelegate ()
 @property (nonatomic, strong) GLTabBarController *tabs;
 @property (nonatomic, strong) GLMoreViewController *more;
+@property (nonatomic, copy) NSArray *scannedMusicFolders;
 @end
 
 @implementation GLAppDelegate
@@ -31,6 +33,7 @@
     GLLog(@"launch");
     GLApplyTheme();
     [GLLibrary shared].ignoreArticles = [GLSettings shared].ignoreArticles;
+    self.scannedMusicFolders = [GLSettings shared].musicFolders;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(settingsChanged)
                                                  name:GLSettingsDidChangeNotification object:nil];
 
@@ -39,7 +42,7 @@
     self.more = [GLMoreViewController new];
     self.tabs = [GLTabBarController new];
     NSArray *roots = @[ [GLArtistsViewController new], [GLAlbumsViewController new], [GLSongsViewController new],
-                        [GLPlaylistsViewController new], self.more ];
+                        [GLPlaylistsViewController new], [[GLFoldersViewController alloc] initWithFolder:@""], self.more ];
     NSMutableArray *navigations = [NSMutableArray array];
     for (UIViewController *root in roots) {
         [navigations addObject:[[GLNavigationController alloc] initWithRootViewController:root]];
@@ -69,6 +72,12 @@
 }
 
 - (void)settingsChanged {
+    NSArray *folders = [GLSettings shared].musicFolders;
+    if (![self.scannedMusicFolders isEqualToArray:folders]) {
+        self.scannedMusicFolders = folders;
+        [[GLLibrary shared] postChange];
+        [[GLLibraryUpdater shared] scan];
+    }
     if ([GLLibrary shared].ignoreArticles != [GLSettings shared].ignoreArticles) {
         [GLLibrary shared].ignoreArticles = [GLSettings shared].ignoreArticles;
         [[GLLibrary shared] postChange];
@@ -116,7 +125,7 @@
 // Opens a tab, a screen of More, or the album of a track.
 - (void)openScreen:(NSString *)name path:(NSString *)path {
     [self.tabs dismissViewControllerAnimated:NO completion:nil];
-    NSArray *tabs = @[ @"artists", @"albums", @"songs", @"playlists", @"more" ];
+    NSArray *tabs = @[ @"artists", @"albums", @"songs", @"playlists", @"folders", @"more" ];
     NSUInteger tab = [tabs indexOfObject:name];
     if (tab != NSNotFound) {
         self.tabs.selectedIndex = tab;
@@ -131,8 +140,8 @@
         [self.tabs showQueue];
         return;
     }
-    if ([@[ @"folders", @"upload", @"settings" ] containsObject:name]) {
-        self.tabs.selectedIndex = 4;
+    if ([@[ @"upload", @"settings" ] containsObject:name]) {
+        self.tabs.selectedIndex = 5;
         [self.more.navigationController popToRootViewControllerAnimated:NO];
         [self.more openScreen:name];
         return;

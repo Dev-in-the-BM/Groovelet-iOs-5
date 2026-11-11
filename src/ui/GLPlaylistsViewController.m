@@ -69,7 +69,7 @@ static NSString *const GLNewPlaylistItem = @"new";
 
 - (NSArray *)tracksForItem:(id)item {
     if (![item isKindOfClass:[GLPlaylist class]]) return nil;
-    return [[GLLibrary shared] tracksOfPlaylist:item musicDirectory:GLMusicDirectory()];
+    return [[GLLibrary shared] tracksOfPlaylist:item musicDirectory:GLMediaDirectory()];
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {

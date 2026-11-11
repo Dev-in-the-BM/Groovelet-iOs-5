@@ -7,6 +7,7 @@
 #import "GLSettings.h"
 #import "GLTextViewController.h"
 #import "GLTheme.h"
+#import "GLPaths.h"
 
 typedef NS_ENUM(NSInteger, GLSettingsSection) {
     GLSectionSound,
@@ -14,6 +15,89 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
     GLSectionAbout,
     GLSectionCount,
 };
+
+@interface GLMusicFoldersViewController : UITableViewController
+@property (nonatomic, strong) NSArray *folders;
+@end
+
+@implementation GLMusicFoldersViewController
+
+- (instancetype)init {
+    if ((self = [super initWithStyle:UITableViewStyleGrouped])) self.title = @"Music Folders";
+    return self;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    GLStyleTable(self.tableView);
+    // Keep the default import folder available as a selectable root even on a
+    // fresh install, before the owner has copied any music to the device.
+    GLMusicDirectory();
+    NSMutableArray *folders = [NSMutableArray array];
+    NSDirectoryEnumerator *walk = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:GLMediaDirectory()]
+        includingPropertiesForKeys:@[ NSURLIsDirectoryKey ] options:NSDirectoryEnumerationSkipsHiddenFiles
+        errorHandler:nil];
+    for (NSURL *url in walk) {
+        NSNumber *directory = nil;
+        [url getResourceValue:&directory forKey:NSURLIsDirectoryKey error:NULL];
+        NSString *full = url.path.stringByStandardizingPath;
+        NSString *prefix = [GLMediaDirectory().stringByStandardizingPath stringByAppendingString:@"/"];
+        if (directory.boolValue && [full hasPrefix:prefix]) [folders addObject:[full substringFromIndex:prefix.length]];
+    }
+    self.folders = [folders sortedArrayUsingSelector:@selector(localizedStandardCompare:)];
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section { return self.folders.count; }
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    NSString *folder = self.folders[indexPath.row];
+    cell.textLabel.text = folder;
+    cell.textLabel.font = GLFont(15);
+    cell.textLabel.textColor = GLTextColor();
+    cell.backgroundColor = GLSurfaceColor();
+    for (NSString *root in [GLSettings shared].musicFolders) {
+        if ([folder isEqualToString:root] || [folder hasPrefix:[root stringByAppendingString:@"/"]]) {
+            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+            break;
+        }
+    }
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    NSString *folder = self.folders[indexPath.row];
+    NSMutableArray *selected = [[GLSettings shared].musicFolders mutableCopy];
+    if ([selected containsObject:folder]) [selected removeObject:folder];
+    else {
+        for (NSString *root in selected) {
+            if ([folder hasPrefix:[root stringByAppendingString:@"/"]]) return;
+        }
+        [selected addObject:folder];
+    }
+    // A parent selection already includes every child. Keep roots disjoint so
+    // scanning and browsing never produce duplicate tracks.
+    NSArray *ordered = [selected sortedArrayUsingComparator:^NSComparisonResult(NSString *a, NSString *b) {
+        if (a.length < b.length) return NSOrderedAscending;
+        if (a.length > b.length) return NSOrderedDescending;
+        return [a compare:b];
+    }];
+    NSMutableArray *roots = [NSMutableArray array];
+    for (NSString *candidate in ordered) {
+        BOOL covered = NO;
+        for (NSString *root in roots) if ([candidate hasPrefix:[root stringByAppendingString:@"/"]]) { covered = YES; break; }
+        if (!covered) [roots addObject:candidate];
+    }
+    [GLSettings shared].musicFolders = roots;
+    [tableView reloadData];
+}
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    return @"Choose folders under Media. A selected folder includes its subfolders.";
+}
+
+@end
 
 @implementation GLSettingsViewController
 
@@ -101,9 +185,11 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
             case 0:
                 return [self switchCellWithTitle:@"Sort without \"The\"" on:settings.ignoreArticles
                                           action:@selector(toggleArticles:)];
-            case 1:
-                return [self switchCellWithTitle:@"Show Folders in More" on:settings.showFolders
-                                          action:@selector(toggleFolders:)];
+            case 1: {
+                UITableViewCell *cell = [self cellWithTitle:@"Music folders" detail:GLCountText((NSInteger)settings.musicFolders.count, @"folder")];
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+                return cell;
+            }
             default: {
                 GLLibraryUpdater *updater = [GLLibraryUpdater shared];
                 NSString *detail = updater.scanning ? @"Scanning..." : GLCountText((NSInteger)[[GLLibrary shared] trackCount],
@@ -140,13 +226,11 @@ typedef NS_ENUM(NSInteger, GLSettingsSection) {
     [GLSettings shared].ignoreArticles = control.on;
 }
 
-- (void)toggleFolders:(UISwitch *)control {
-    [GLSettings shared].showFolders = control.on;
-}
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    if (indexPath.section == GLSectionLibrary && indexPath.row == 2) {
+    if (indexPath.section == GLSectionLibrary && indexPath.row == 1) {
+        [self.navigationController pushViewController:[GLMusicFoldersViewController new] animated:YES];
+    } else if (indexPath.section == GLSectionLibrary && indexPath.row == 2) {
         // This scan reads each file again, and makes the art again.
         [[GLArtCache shared] clear];
         [[GLImageLoader shared] clear];

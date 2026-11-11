@@ -12,6 +12,12 @@ Each entry gives the reason. The owner made these choices on 2026-10-17.
 - **The app plays only its own files.** It does not read the iPod library
   of iTunes. Files that the app owns are the reason for a player on a
   jailbroken phone: they can be in any format, and no sync is necessary.
+- **Music roots can be selected under `/var/mobile/Media`.** The owner chooses
+  folders in Settings; scanning and folder browsing are confined to those
+  roots. The existing `Media/Groovelet` folder remains the import and upload
+  destination and the default root for existing installs. This supersedes the
+  earlier restriction that all indexed files must live directly under
+  `Media/Groovelet`.
 - **The app does not use the network**, except for the Wi-Fi upload page on
   the local network. It reads no online metadata and does no scrobbling.
 - **The repository is public.** The licence is MIT.
@@ -187,7 +193,7 @@ lyrics, and scrobbling.
 
 - The owner makes playlists in the app. A playlist can get tracks, lose
   tracks, and change its order.
-- The app reads `.m3u` and `.m3u8` files in the music directory as playlists that
+- The app reads `.m3u` and `.m3u8` files in selected music folders as playlists that
   cannot change.
 - Three playlists are automatic: Recently Added, Most Played, and Recently
   Played. The index keeps a play count and the date of the last play of
@@ -224,8 +230,8 @@ lyrics, and scrobbling.
 ## File management
 
 - The app deletes a track, an album, or a folder from the phone, after a
-  second question (0.7). A folder that becomes empty goes too. The music
-  directory itself stays. A delete cannot go out of the music directory. A
+  second question (0.7). A folder that becomes empty goes too. Media itself
+  stays. A delete cannot go out of Media. A
   playlist has no delete in its menu, because it only points to its files.
 - The app does not edit tags, rename files, or move files. A computer does
   that.
@@ -237,8 +243,9 @@ lyrics, and scrobbling.
 - **The colors:** the accent is coral `#FF6B4A`, and the background is
   `#111111`. They are different from the green of Spotify and the red of
   Apple Music.
-- **Five tabs:** Artists, Albums, Songs, Playlists, and More. More holds
-  Folders, Upload, and Settings.
+- **Six destinations:** Artists, Albums, Songs, Playlists, Folders, and More.
+  The Folders tab browses only selected music roots; More holds Upload and
+  Settings (and appears in the system overflow on compact tab bars).
 - **A mini player** sits above the tab bar. A tap on it opens the full
   now-playing screen.
 - **Each list has a search box** at the top.
@@ -253,10 +260,9 @@ lyrics, and scrobbling.
     too slow on the A5 chip.
 - **Drawing:** the views use `CALayer`, not `drawRect`, so that the lists
   scroll fast.
-- **Settings:** ReplayGain (Off, Track, or Album, with Track as the
-  default), rescan the library, the sort that ignores "The" (on), the
-  Folders tab (on), and About with the version, the licences, and a link to
-  GitHub. Nothing more.
+- **Settings:** choose music folders under Media, ReplayGain (Off, Track, or
+  Album, with Track as the default), rescan the library, the sort that ignores
+  "The" (on), and About with the version, licences, and GitHub link.
 
 ## The brand
 

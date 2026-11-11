@@ -52,3 +52,12 @@ The iPod connected over USB. Wi-Fi SSH alias `iphone4s` did not work. A USB SSH 
 ## Remaining checks
 
 Opening the app is verified. Do not claim the other features work on iOS 5.1 until they have been tested on the device. Test playback, background audio, route changes, lock-screen controls, library scanning, and upload. No changes have been committed after `43dba76` for these handoff files unless a later commit is made.
+
+## Active task: selected Media music folders
+
+- User request: add a Settings control to choose which folders inside `/var/mobile/Media` are music roots, and a dedicated tab to browse nested folders and play music. Browsing must stay inside the selected roots.
+- Preserve `Media/Groovelet` as the import and Wi-Fi-upload destination; it should remain the default selected root for existing installs.
+- Implemented Settings folder selection, scoped scanning, a dedicated Folders tab, Media-relative playback paths, schema-v4 migration for old library/playlist paths, and preservation of the `Groovelet` import/upload destination.
+- `scripts/app.sh` builds successfully for armv7/iOS 5.1 using the documented linker tools. The core test executable also compiles for armv7. `scripts/test.sh` cannot execute on this Linux host because its Mac test target requires the macOS Objective-C runtime and frameworks. The updated app was installed over the existing USB tunnel, signed on-device, and registered with `uicache`. The iPod's `open` command is unavailable; launch from its SpringBoard icon. Updated UI/library behavior and test execution remain unverified; do not claim feature verification without testing on the iPod.
+- A scan treats Settings' selected roots as the full library: removing a root removes its tracks from the index; selecting no roots leaves the library empty.
+- Keep this section, `status.md`, `goals.md`, and the roadmap current as remaining verification proceeds.

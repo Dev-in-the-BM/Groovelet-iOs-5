@@ -415,7 +415,9 @@ NSString *const GLPlaybackDidChangeNotification = @"GLPlaybackDidChange";
         GLPlayQueue *copy = [self.queue copy];
         NSString *path = [self queuePath];
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-            NSData *data = [NSPropertyListSerialization dataWithPropertyList:copy.state
+            NSMutableDictionary *state = [copy.state mutableCopy];
+            state[@"pathRootVersion"] = @2;
+            NSData *data = [NSPropertyListSerialization dataWithPropertyList:state
                                                                       format:NSPropertyListBinaryFormat_v1_0
                                                                      options:0 error:NULL];
             [data writeToFile:path atomically:YES];
@@ -436,6 +438,14 @@ NSString *const GLPlaybackDidChangeNotification = @"GLPlaybackDidChange";
                                                mutableCopy] : nil;
         NSDictionary *place = [NSDictionary dictionaryWithContentsOfFile:placePath];
         if (![state isKindOfClass:[NSDictionary class]] || ![state[@"paths"] count]) return;
+        if ([state[@"pathRootVersion"] integerValue] < 2) {
+            NSMutableArray *paths = [NSMutableArray array];
+            for (NSString *path in state[@"paths"]) {
+                [paths addObject:[@"Groovelet" stringByAppendingPathComponent:path]];
+            }
+            state[@"paths"] = paths;
+            state[@"pathRootVersion"] = @2;
+        }
         if (place[@"index"]) state[@"index"] = place[@"index"];
         NSMutableDictionary *tracks = [NSMutableDictionary dictionary];
         for (GLTrack *track in [[GLLibrary shared] allTracks]) tracks[track.path] = track;

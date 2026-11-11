@@ -73,7 +73,7 @@
 }
 
 - (NSArray *)loadItems {
-    return [[GLLibrary shared] tracksOfPlaylist:self.playlist musicDirectory:GLMusicDirectory()];
+    return [[GLLibrary shared] tracksOfPlaylist:self.playlist musicDirectory:GLMediaDirectory()];
 }
 
 - (NSString *)searchTextForItem:(GLTrack *)track {

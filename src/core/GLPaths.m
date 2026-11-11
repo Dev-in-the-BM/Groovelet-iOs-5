@@ -19,6 +19,10 @@ NSString *GLMusicDirectory(void) {
     return GLMakeDirectory([GLRoot() stringByAppendingPathComponent:@"Media/Groovelet"]);
 }
 
+NSString *GLMediaDirectory(void) {
+    return GLMakeDirectory([GLRoot() stringByAppendingPathComponent:@"Media"]);
+}
+
 NSString *GLSupportDirectory(void) {
     return GLMakeDirectory([GLRoot() stringByAppendingPathComponent:@"Library/Application Support/Groovelet"]);
 }
@@ -28,11 +32,11 @@ NSString *GLCacheDirectory(void) {
 }
 
 NSString *GLAbsolutePath(NSString *relativePath) {
-    return [GLMusicDirectory() stringByAppendingPathComponent:relativePath];
+    return [GLMediaDirectory() stringByAppendingPathComponent:relativePath];
 }
 
 NSString *GLRelativePath(NSString *absolutePath) {
-    NSString *root = [GLMusicDirectory().stringByStandardizingPath stringByAppendingString:@"/"];
+    NSString *root = [GLMediaDirectory().stringByStandardizingPath stringByAppendingString:@"/"];
     NSString *path = absolutePath.stringByStandardizingPath;
     if (![path hasPrefix:root]) return nil;
     return [path substringFromIndex:root.length];

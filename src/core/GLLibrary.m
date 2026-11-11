@@ -22,7 +22,7 @@ NSString *const GLLibraryDidChangeNotification = @"GLLibraryDidChange";
 static const int GLAutomaticLimit = 100;
 
 // The version of the schema. A newer app changes an older database.
-static const int GLSchemaVersion = 3;
+static const int GLSchemaVersion = 4;
 
 static NSString *const GLTrackColumns =
     @"id, path, size, modified, added, title, artist, album, album_artist, genre, sort_title, sort_artist, "
@@ -153,6 +153,13 @@ static double GLColumnDouble(sqlite3_stmt *statement, int index) {
         ok = ok && [self execute:@"CREATE INDEX tracks_played ON tracks (last_played)"];
         ok = ok && [self execute:@"CREATE INDEX tracks_count ON tracks (play_count)"];
         ok = ok && [self execute:@"CREATE INDEX tracks_added ON tracks (added)"];
+    }
+    if (version < 4) {
+        // Older releases stored paths relative to Media/Groovelet. All indexed
+        // paths now share Media as their root, so existing rows move under it.
+        ok = ok && [self execute:@"UPDATE tracks SET path = 'Groovelet/' || path"];
+        ok = ok && [self execute:@"UPDATE playlist_items SET path = 'Groovelet/' || path"];
+        ok = ok && [self execute:@"UPDATE playlist_files SET path = 'Groovelet/' || path"];
     }
     ok = ok && [self execute:[NSString stringWithFormat:@"PRAGMA user_version = %d", GLSchemaVersion]];
     return [self execute:ok ? @"COMMIT" : @"ROLLBACK"] && ok;

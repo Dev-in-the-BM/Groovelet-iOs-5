@@ -17,9 +17,9 @@ extern NSString *const GLSettingsDidChangeNotification;
 
 // The lists sort "The Beatles" under B. Default: YES.
 @property (nonatomic) BOOL ignoreArticles;
-// More shows the Folders row. Default: YES.
-@property (nonatomic) BOOL showFolders;
 // Default: track.
 @property (nonatomic) GLReplayGainMode replayGainMode;
+// Relative folder paths under /var/mobile/Media that the scanner may index.
+@property (nonatomic, copy) NSArray *musicFolders;
 
 @end
