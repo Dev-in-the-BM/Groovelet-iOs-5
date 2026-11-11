@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Shuffle the full library from the Songs screen's top bar.
+
 ## 1.0.2 (2026-10-18)
 
 - The length of an MP3 file comes from its Xing, Info, or VBRI header. iOS

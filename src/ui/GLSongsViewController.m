@@ -14,6 +14,17 @@
     return self;
 }
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.navigationItem.rightBarButtonItem =
+        [[UIBarButtonItem alloc] initWithTitle:@"Shuffle" style:UIBarButtonItemStylePlain target:self
+                                        action:@selector(shuffleAll)];
+}
+
+- (void)shuffleAll {
+    [[GLPlayback shared] shuffleTracks:[[GLLibrary shared] allTracks]];
+}
+
 - (NSArray *)loadItems {
     return [[GLLibrary shared] allTracks];
 }

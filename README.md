@@ -82,6 +82,7 @@ goes into the next with no gap.
 - A grid of the album art, and a page for each album
 - Search across songs, artists, and albums, plus a search box on each list and
   an index of letters
+- Shuffle all songs directly from the Songs screen's top bar
 - A mini player above the tabs, and a player screen with the art on a
   blurred copy of it
 - Gapless play, shuffle, repeat all, and repeat one
