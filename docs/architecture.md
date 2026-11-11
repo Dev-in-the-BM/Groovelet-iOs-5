@@ -93,8 +93,10 @@ packaging/     the files of the Cydia package
 
 ## The SDK
 
-The app builds with the iOS 9.3 SDK and the clang of the current Xcode.
-`fix-sdk.sh` changes the SDK stubs:
+The app targets armv7/iOS 5.1 with the iOS 9.3 SDK. The tested Linux workflow
+uses Clang/LLVM 21 and the pinned cctools-port linker produced by
+`scripts/toolchain.sh`; see [`ios-5.1-backport.md`](ios-5.1-backport.md) for
+recovery and install instructions. `fix-sdk.sh` changes the SDK stubs:
 
 - It removes the simulator architectures, so that the new linker accepts the
   stubs.

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Shuffle the full library from the Songs screen's top bar.
+- Shuffle the full library from the Songs screen's top bar, beside More.
 
 ## 1.0.2 (2026-10-18)
 

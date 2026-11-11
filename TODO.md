@@ -57,10 +57,9 @@ for each choice is in [docs/decisions.md](docs/decisions.md).
 
 ## Next
 
-- Add configurable library roots under `/var/mobile/Media`, with a scoped
-  folder-browser tab, a configurable five-item bottom bar, and safe playback
-  path handling (implemented; device verification pending; see
-  [goals.md](goals.md) and [status.md](status.md)).
+- Touch-test the selected Media roots, configurable tabs, and the Songs
+  Shuffle/More buttons on the iPod; verify shuffle playback and existing
+  library/playback behavior. See [status.md](status.md).
 
 - Publish the release on GitHub with the .deb, and add it to the Cydia
   repository. This waits for the owner.
@@ -78,6 +77,8 @@ need a person:
 - The long press menus: Play Next, Add to Queue, Add to Playlist, Delete.
 - New Playlist, Rename, and Change the Order.
 - The sound of the gapless join in `Samples/Gapless`.
+- The Songs navigation bar shows Shuffle beside More; both buttons work and
+  Shuffle plays the full library even while search is active.
 
 ## Known problems
 

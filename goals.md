@@ -4,7 +4,7 @@ Backport Groovelet to iOS 5.1 for jailbroken armv7 devices. Build a working app 
 
 Success means that the app builds, installs, and opens on an iOS 5.1 device. Test playback and other device features separately before calling them verified.
 
-## Current feature goal: selected Media folders
+## Implemented feature: selected Media folders
 
 Let the owner select one or more folders under `/var/mobile/Media` in Settings.
 Index audio and playlist files only inside those selected folders, and provide
@@ -20,3 +20,13 @@ limit; tab destinations can be reordered; selecting a destination in Settings
 only toggles its checkmark and does not navigate away; unselected destinations
 remain available from More; the Folders and Search tabs have generated PNG
 icons; iOS 5.1 compatibility and existing library data are kept.
+
+Implementation is present and installed on the iPod touch 3,1. Hands-on checks
+of the folder/tab interactions remain pending; see [status.md](status.md).
+
+## Recent feature: Shuffle beside More
+
+Songs exposes a Shuffle action beside More in the top navigation bar. It starts
+shuffled playback of the full library, independent of search filtering. The
+layout and install are complete; visually verify both buttons and test playback
+on the device before marking this behavior verified.
