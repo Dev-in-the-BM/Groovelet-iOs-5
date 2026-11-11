@@ -18,7 +18,9 @@
     if ((self = [super init])) {
         _folder = [folder copy];
         self.title = folder.length ? folder.lastPathComponent : @"Folders";
-        if (!folder.length) self.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Folders" image:nil tag:0];
+        if (!folder.length) self.tabBarItem = [[UITabBarItem alloc] initWithTitle:@"Folders"
+                                                                           image:[UIImage imageNamed:@"Tab-folders.png"]
+                                                                             tag:0];
     }
     return self;
 }

@@ -246,6 +246,9 @@ lyrics, and scrobbling.
 - **Five visible destinations:** Artists, Albums, Songs, Folders, and More.
   Folders gets one of the four direct-content slots so it is not hidden by
   UIKit's overflow. More contains Playlists, Upload, and Settings.
+- **The Folders tab icon** follows the existing tab artwork pipeline: the
+  source is `assets/tabs/folders.svg`; `scripts/icons.sh` renders 30px and 60px
+  PNGs because iOS loads the PNG assets, not SVG files.
 - **A mini player** sits above the tab bar. A tap on it opens the full
   now-playing screen.
 - **Each list has a search box** at the top.

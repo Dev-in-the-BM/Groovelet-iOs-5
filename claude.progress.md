@@ -7,7 +7,8 @@ This file records the technical work and reproduction details for the iOS 5.1 ba
 - Repository: Groovelet iOS 5.1 backport.
 - Branch: `main`.
 - Remote: `https://github.com/Dev-in-the-BM/Groovelet-iOs-5`.
-- Latest committed and pushed revision: `43dba76` (`Backport Groovelet to iOS 5.1`).
+- Latest pushed revision: `2710cf3` (`Add selectable music folders and browser tab`).
+- Latest local commit: `fba6cbc` (`Keep folders visible in the tab bar`); the folder-icon assets are uncommitted.
 - Device: iPod touch 3,1, iOS 5.1.1, armv7.
 - Build SDK: iOS 9.3 SDK at `sdks/iPhoneOS9.3.sdk`. The SDK is not tracked by Git.
 - Build host: Linux. The Apple linker, archiver, and ranlib tools live outside the repository at `/tmp/opencode/apple-toolchain/bin/`.
@@ -51,7 +52,7 @@ The iPod connected over USB. Wi-Fi SSH alias `iphone4s` did not work. A USB SSH 
 
 ## Remaining checks
 
-Opening the app is verified. Do not claim the other features work on iOS 5.1 until they have been tested on the device. Test playback, background audio, route changes, lock-screen controls, library scanning, and upload. No changes have been committed after `43dba76` for these handoff files unless a later commit is made.
+Opening the app is verified. Do not claim the other features work on iOS 5.1 until they have been tested on the device. Test playback, background audio, route changes, lock-screen controls, library scanning, and upload. The selected-folder feature was committed in `2710cf3`; the visible-tab adjustment is committed in `fba6cbc`. Folder-icon work and its documentation are currently uncommitted.
 
 ## Active task: selected Media music folders
 
@@ -61,4 +62,5 @@ Opening the app is verified. Do not claim the other features work on iOS 5.1 unt
 - `scripts/app.sh` builds successfully for armv7/iOS 5.1 using the documented linker tools. The core test executable also compiles for armv7. `scripts/test.sh` cannot execute on this Linux host because its Mac test target requires the macOS Objective-C runtime and frameworks. The updated app was installed over the existing USB tunnel, signed on-device, and registered with `uicache`. The iPod's `open` command is unavailable; launch from its SpringBoard icon. Updated UI/library behavior and test execution remain unverified; do not claim feature verification without testing on the iPod.
 - A scan treats Settings' selected roots as the full library: removing a root removes its tracks from the index; selecting no roots leaves the library empty.
 - The visible tab order is Artists, Albums, Songs, Folders, More. Playlists is a row in More so iOS's automatic tab overflow does not hide Folders.
+- The Folders tab uses a source SVG at `assets/tabs/folders.svg`, rendered to 30px and 60px PNGs by `scripts/icons.sh`; the app loads the PNG asset, not SVG.
 - Keep this section, `status.md`, `goals.md`, and the roadmap current as remaining verification proceeds.

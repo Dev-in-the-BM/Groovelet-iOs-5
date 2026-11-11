@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
+  <!-- Folder silhouette; iOS 6 uses only the alpha channel and supplies the tint. -->
+  <path fill="#000"
+        d="M4.5 6.5h7.2c.8 0 1.5.3 2 .9l1.7 2.1h10.1c1.1 0 2 .9 2 2v11c0 1.1-.9 2-2 2H4.5c-1.1 0-2-.9-2-2v-14c0-1.1.9-2 2-2z"/>
+</svg>
